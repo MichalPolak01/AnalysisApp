@@ -2,12 +2,12 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import pandas as pd
 import tkinter as tk
-# import customtkinter
+#import customtkinter
 
 FileName = 'District Interventions.csv'
 
 def plot(fileName):
-    df = pd.read_csv('../materialy/praca inżynierska/police_simulation-main/results/'+fileName, sep=',', header=None, index_col=False)
+    df = pd.read_csv('results/'+fileName, sep=',', header=None, index_col=False)
     
     plt.rcParams["axes.prop_cycle"] = plt.cycler(
         color = ["#4C2A85", "#BE96FF", "#957DAD", "#5E366E", "#A98CCC"]

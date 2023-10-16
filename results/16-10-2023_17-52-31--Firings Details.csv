@@ -1,0 +1,4 @@
+"simulationTime[s]","firingID","districtName","districtSafetyLevel","generallyRequiredPatrols","solvingPatrols","reachingPatrols(including 'called')","calledPatrols","totalDistanceOfCalledPatrols","isNight"
+4308,06464019-bdf0-4785-a4b7-1b14bb4281e5,Grabówka,RatherSafe,2,1,1,1,"371,7923948049294",0
+4569,c9bc8f4c-e9b3-4673-a1dc-e1229824cdbe,Jasna,RatherSafe,4,1,7,7,"12610,415204293422",0
+4845,0e58596c-7d2f-4c66-949e-6455be62ea80,Krakowska,RatherSafe,2,1,2,2,"1432,7310265101228",0

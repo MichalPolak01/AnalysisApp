@@ -1,0 +1,5 @@
+"simulationTime[s]","firingID","districtName","districtSafetyLevel","distanceOfSummonedAmbulance[m]","timeToReachFiring[s]"
+2128,626f1d30-3d64-4eec-8200-a344e258448a,Klikowa,RatherSafe,"3988,6334091250974",179.4885034106294
+4308,06464019-bdf0-4785-a4b7-1b14bb4281e5,Grabówka,RatherSafe,"1642,2213466203134",73.8999605979141
+4569,c9bc8f4c-e9b3-4673-a1dc-e1229824cdbe,Jasna,RatherSafe,"2172,586153328022",97.766376899761
+4845,0e58596c-7d2f-4c66-949e-6455be62ea80,Krakowska,RatherSafe,"2644,2560676421576",118.9915230438971
