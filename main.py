@@ -49,6 +49,29 @@ def create_plot(selected_date, selected_chart_title):
         ax2.set_ylabel("Average Firing Duration [min]")
         fig.legend(loc="upper right")
 
+    elif selected_chart_title == "Average Duration Patrols Heading Towards Incidents Per Hour":
+        ax.plot(df["simulationTime[s]"], df["averageTransferToInterventionDuration[s]"],
+                label="Average Transfer to Intervention Duration [s]")
+        ax.set_title("Average Duration Patrols Heading Towards Incidents Per Hour")
+        ax.set_xlabel("Time [s]")
+        ax.set_ylabel("Average Transfer to Intervention Duration [s]")
+        ax2 = ax.twinx()
+        ax2.plot(df["simulationTime[s]"], df["averageTransferToFiringDuration[s]"], color='orange',
+                 label="Average Transfer to Firing Duration [s]")
+        ax2.set_ylabel("Average Transfer to Firing Duration [s]")
+        fig.legend(loc="upper right")
+
+    elif selected_chart_title == "Average Swat Distance And Time To Reach Firing":
+        ax.plot(df["simulationTime[s]"], df["averageDistanceToReach[m]"],
+                label="Average SWAT Distance to Reach [m]")
+        ax.set_title("Average Swat Distance And Time To Reach Firing")
+        ax.set_xlabel("Time [s]")
+        ax.set_ylabel("Average SWAT Distance to Reach [m]")
+        ax2 = ax.twinx()
+        ax2.plot(df["simulationTime[s]"], df["averageTimeToReach[s]"], color='orange', label="Average SWAT Time to Reach [s]")
+        ax2.set_ylabel("Average SWAT Time to Reach [s]")
+        fig.legend(loc="upper right")
+
 # Tu nie ma headerów i są błędy
     elif selected_chart_title == "Neutralized Patrols Per District":
         ax.barh(list(df[0]), df[1])
@@ -138,6 +161,8 @@ chart_titles = [
     "Ambulances In Use Per Hour",
     "Average Ambulance Distance And Time To Reach Firing",
     "Average Duration Of Incidents Per Hour",
+    "Average Duration Patrols Heading Towards Incidents Per Hour",
+    "Average Swat Distance And Time To Reach Firing"
 ]
 
 # Create a window
