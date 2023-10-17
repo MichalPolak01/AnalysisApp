@@ -4,90 +4,16 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import pandas as pd
 import tkinter as tk
+from charts import create_plot, chart_titles
 
 # Pobierz listę dostępnych plików CSV z folderu "results"
 csv_files = glob.glob('results/*.csv')
 
 
-# Funkcja do tworzenia wykresu na podstawie wybranej daty i nazwy wykresu
-def create_plot(selected_date, selected_chart_title):
-    file_name = f"results/{selected_date}--{selected_chart_title}.csv"
-    print(file_name)
-    df = pd.read_csv(file_name)
-
-    # Kolory wykresów (chyba nie działa aktualnie)
-    plt.rcParams["axes.prop_cycle"] = plt.cycler(
-        color=["#4C2A85", "#BE96FF", "#957DAD", "#5E366E", "#A98CCC"]
-    )
-    fig, ax = plt.subplots()
-
-    if selected_chart_title == "Ambulances In Use Per Hour":
-        ax.bar(list(df["simulationTime[s]"]), df["amountOfSolvingAmbulances"])
-        ax.set_title("Ambulances In Use Per Hour")
-        ax.set_xlabel("Time [s]")
-        ax.set_ylabel("Ambulances In Use")
-
-    elif selected_chart_title == "Average Ambulance Distance And Time To Reach Firing":
-        ax.plot(df["simulationTime[s]"], df["averageDistanceToReach[m]"], label="Distance [m]")
-        ax.set_title("Average Ambulance Distance And Time To Reach Firing")
-        ax.set_xlabel("Time [s]")
-        ax.set_ylabel("Distance [m]")
-        ax2 = ax.twinx()
-        ax2.plot(df["simulationTime[s]"], df["averageTimeToReach[s]"], color='orange', label="Time [s]")
-        ax2.set_ylabel("Time [s]")
-        fig.legend(loc="upper right")
-
-    elif selected_chart_title == "Average Duration Of Incidents Per Hour":
-        ax.plot(df["simulationTime[s]"], df["averageInterventionDuration[min]"],
-                label="Average Intervention Duration [min]")
-        ax.set_title("Average Duration Of Incidents Per Hour")
-        ax.set_xlabel("Time [s]")
-        ax.set_ylabel("Average Intervention Duration [min]")
-        ax2 = ax.twinx()
-        ax2.plot(df["simulationTime[s]"], df["averageFiringDuration[min]"], color='orange',
-                 label="Average Firing Duration [min]")
-        ax2.set_ylabel("Average Firing Duration [min]")
-        fig.legend(loc="upper right")
-
-    elif selected_chart_title == "Average Duration Patrols Heading Towards Incidents Per Hour":
-        ax.plot(df["simulationTime[s]"], df["averageTransferToInterventionDuration[s]"],
-                label="Average Transfer to Intervention Duration [s]")
-        ax.set_title("Average Duration Patrols Heading Towards Incidents Per Hour")
-        ax.set_xlabel("Time [s]")
-        ax.set_ylabel("Average Transfer to Intervention Duration [s]")
-        ax2 = ax.twinx()
-        ax2.plot(df["simulationTime[s]"], df["averageTransferToFiringDuration[s]"], color='orange',
-                 label="Average Transfer to Firing Duration [s]")
-        ax2.set_ylabel("Average Transfer to Firing Duration [s]")
-        fig.legend(loc="upper right")
-
-    elif selected_chart_title == "Average Swat Distance And Time To Reach Firing":
-        ax.plot(df["simulationTime[s]"], df["averageDistanceToReach[m]"],
-                label="Average SWAT Distance to Reach [m]")
-        ax.set_title("Average Swat Distance And Time To Reach Firing")
-        ax.set_xlabel("Time [s]")
-        ax.set_ylabel("Average SWAT Distance to Reach [m]")
-        ax2 = ax.twinx()
-        ax2.plot(df["simulationTime[s]"], df["averageTimeToReach[s]"], color='orange', label="Average SWAT Time to Reach [s]")
-        ax2.set_ylabel("Average SWAT Time to Reach [s]")
-        fig.legend(loc="upper right")
-
-# Tu nie ma headerów i są błędy
-    elif selected_chart_title == "Neutralized Patrols Per District":
-        ax.barh(list(df[0]), df[1])
-        ax.set_title("Neutralized Patrols Per District")
-        ax.set_xlabel("Quantiy of parols")
-        ax.set_ylabel("Distinct")
-        fig.legend(loc="upper right")
-
-    plt.tight_layout()
-
-    return fig
-
+# Funkcja do aktualizacji wykresu
 def update_plot():
     selected_date = date_var.get()
     selected_chart_title = chart_var.get()
-
     fig = create_plot(selected_date, selected_chart_title)
 
     # Usuń poprzednie dane z wykresu
@@ -105,18 +31,16 @@ def on_chart_select(*args):
 
     filtered_files = [file for file in csv_files if file.endswith(chart_title + '.csv')]
     dates = list(set(os.path.basename(file).split('--')[0] for file in filtered_files))
-    
-    # Data ustawiona na global bo ta funkcja nie może nic zwracać będąc wywołana po wybraniu tytułu
+
     global date
     date = dropdown_list_date(dates)
 
+
 date_dropdown = False
 
-def dropdown_list_date(dates):
-    # Dropdown list for selecting the date
-    global date_dropdown
-    # print('date {date_dropdown}')
 
+def dropdown_list_date(dates):
+    global date_dropdown
     date_var.set("")
 
     if date_dropdown:
@@ -126,46 +50,33 @@ def dropdown_list_date(dates):
     else:
         date_label = tk.Label(root, text="Select Date:")
         date_label.pack()
-        # date_var = tk.StringVar(root)
         date_dropdown = tk.OptionMenu(root, date_var, *dates)
         date_dropdown.pack()
-    
+
     selected_date = date_var.get() or dates[0]
     return selected_date
 
 
 def select_chart():
-    
     chart_label = tk.Label(root, text="Select Chart Title:")
     chart_label.pack()
 
-    # chart_var = tk.StringVar(root)
     chart_dropdown = tk.OptionMenu(root, chart_var, *chart_titles)
     chart_dropdown.pack()
     selected_title = chart_var.get() or chart_titles[0]
 
-    # Wywołanie funkcji po wybraniu Tytułu
     chart_var.trace('w', on_chart_select)
 
-    # Jeżeli nie jest wybrany tytuł (1 uruchomienie) data jest ustawiana inaczej    
     if (chart_var.get() == ''):
-            filtered_files = [file for file in csv_files if file.endswith(selected_title + '.csv')]
-            dates = list(set(os.path.basename(file).split('--')[0] for file in filtered_files))
-
-            global date
-            date = dropdown_list_date(dates)
+        filtered_files = [file for file in csv_files if file.endswith(selected_title + '.csv')]
+        dates = list(set(os.path.basename(file).split('--')[0] for file in filtered_files))
+        global date
+        date = dropdown_list_date(dates)
 
     return selected_title
 
-chart_titles = [
-    "Ambulances In Use Per Hour",
-    "Average Ambulance Distance And Time To Reach Firing",
-    "Average Duration Of Incidents Per Hour",
-    "Average Duration Patrols Heading Towards Incidents Per Hour",
-    "Average Swat Distance And Time To Reach Firing"
-]
 
-# Create a window
+
 root = tk.Tk()
 root.title('Analysis Application')
 root.state('zoomed')
@@ -175,7 +86,6 @@ date_var = tk.StringVar(root)
 
 chart_title = select_chart()
 
-# Button to update the plot
 update_button = tk.Button(root, text="Update Plot", command=update_plot)
 update_button.pack()
 
