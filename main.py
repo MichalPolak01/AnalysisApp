@@ -8,7 +8,7 @@ from charts import create_plot, chart_titles
 
 
 # Pobierz listę dostępnych plików CSV z folderu "results"
-csv_files = glob.glob('results/Tarnow/*.csv')
+csv_files = glob.glob('results/Berlin/*.csv')
 
 
 # Funkcja do aktualizacji wykresu

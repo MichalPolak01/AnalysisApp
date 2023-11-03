@@ -9,17 +9,17 @@ import pandas as pd
 
 # Lista dostępnych tytułów wykresów
 chart_titles = [
-    "Ambulances In Use Per Hour",
-    "Average Ambulance Distance And Time To Reach Firing",
-    # "Average Duration Of Incidents Per Hour",
-    "Average Duration Patrols Heading Towards Incidents Per Hour",
-    "Average Swat Distance And Time To Reach Firing",
+    #"Ambulances In Use Per Hour",
+    #"Average Ambulance Distance And Time To Reach Firing",
+    #"Average Duration Of Incidents Per Hour",
+    #"Average Duration Patrols Heading Towards Incidents Per Hour",
+    #"Average Swat Distance And Time To Reach Firing",
     "First Patrol Data"
 ]
 
 
 def create_plot(selected_date, selected_chart_title):
-    file_name = f"results/Tarnow/{selected_date}--{selected_chart_title}.csv"
+    file_name = f"results/Berlin/{selected_date}--{selected_chart_title}.csv"
     print(file_name)
     df = pd.read_csv(file_name)
 
