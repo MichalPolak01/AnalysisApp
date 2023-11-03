@@ -8,14 +8,19 @@ from charts import create_plot, chart_titles
 
 
 # Pobierz listę dostępnych plików CSV z folderu "results"
-csv_files = glob.glob('results/Berlin/*.csv')
+csv_files = glob.glob('results/Tarnow/*.csv')
 
+cities = [
+    "Tarnow",
+    "Berlin",
+    "Krakow",
+]
 
 # Funkcja do aktualizacji wykresu
 def update_plot():
     selected_date = date_var.get()
     selected_chart_title = chart_var.get()
-    fig = create_plot(selected_date, selected_chart_title)
+    fig = create_plot(selected_date, selected_chart_title, selected_city)
 
     # Usuń poprzednie dane z wykresu
     for widget in upper_frame.winfo_children():
@@ -38,6 +43,7 @@ def on_chart_select(*args):
 
 
 date_dropdown = False
+city_dropdown = False
 
 
 def dropdown_list_date(dates):
@@ -56,6 +62,23 @@ def dropdown_list_date(dates):
 
     selected_date = date_var.get() or dates[0]
     return selected_date
+
+def dropdown_list_city():
+    global city_dropdown
+    city_var.set("")
+
+    if city_dropdown:
+        city_dropdown['menu'].delete(0, 'end')
+        for city in cities:
+            city_dropdown['menu'].add_command(label=city, command=tk._setit(city_var, city))
+    else:
+        city_label = tk.Label(root, text="Select City:")
+        city_label.pack()
+        city_dropdown = tk.OptionMenu(root, city_var, *cities)
+        city_dropdown.pack()
+
+    selected_city = city_var.get() or cities[0]
+    return selected_city
 
 
 def select_chart():
@@ -84,8 +107,11 @@ root.state('zoomed')
 
 chart_var = tk.StringVar(root)
 date_var = tk.StringVar(root)
+city_var = tk.StringVar()
+city_dropdown = None
 
 chart_title = select_chart()
+selected_city = dropdown_list_city()
 
 update_button = tk.Button(root, text="Update Plot", command=update_plot)
 update_button.pack()
@@ -93,7 +119,7 @@ update_button.pack()
 upper_frame = tk.Frame(root)
 upper_frame.pack(fill="both", expand=True)
 
-fig = create_plot(date, chart_title)
+fig = create_plot(date, chart_title, selected_city)
 
 canvas = FigureCanvasTkAgg(fig, upper_frame)
 canvas.draw()
