@@ -6,8 +6,9 @@ import pandas as pd
 import tkinter as tk
 from charts import create_plot, chart_titles
 
+
 # Pobierz listę dostępnych plików CSV z folderu "results"
-csv_files = glob.glob('results/*.csv')
+csv_files = glob.glob('results/Tarnow/*.csv')
 
 
 # Funkcja do aktualizacji wykresu

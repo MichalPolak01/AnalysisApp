@@ -19,7 +19,7 @@ chart_titles = [
 
 
 def create_plot(selected_date, selected_chart_title):
-    file_name = f"results/{selected_date}--{selected_chart_title}.csv"
+    file_name = f"results/Tarnow/{selected_date}--{selected_chart_title}.csv"
     print(file_name)
     df = pd.read_csv(file_name)
 
