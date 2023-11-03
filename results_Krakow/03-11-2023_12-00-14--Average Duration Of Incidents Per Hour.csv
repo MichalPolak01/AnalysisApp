@@ -1,0 +1,7 @@
+"simulationTime[s]","amountOfInterventions","interventionsDuration[min]","averageInterventionDuration[min]","amountOfFirings","firingsDuration[min]","averageFiringDuration[min]"
+3600,29.0,588.0,20.275862068965516,1.0,62.0,62.0
+7201,22.0,445.0,20.227272727272727,4.0,227.0,56.75
+10800,30.0,555.0,18.5,2.0,150.0,75.0
+14403,30.0,481.0,16.033333333333335,4.0,259.0,64.75
+18000,22.0,0.0,0.0,5.0,0.0,0.0
+21600,22.0,0.0,0.0,3.0,0.0,0.0
