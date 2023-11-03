@@ -13,31 +13,10 @@ chart_titles = [
     "Average Ambulance Distance And Time To Reach Firing",
     # "Average Duration Of Incidents Per Hour",
     "Average Duration Patrols Heading Towards Incidents Per Hour",
-    "Average Swat Distance And Time To Reach Firing"
+    "Average Swat Distance And Time To Reach Firing",
+    "First Patrol Data"
 ]
 
-# Funkcja do tworzenia wykresu na podstawie wybranej daty i nazwy wykresu
-def create_plot(selected_date, selected_chart_title):
-    file_name = f"results/{selected_date}--{selected_chart_title}.csv"
-    print(file_name)
-    df = pd.read_csv(file_name)
-
-    plt.rcParams["axes.prop_cycle"] = plt.cycler(
-        color=["#4C2A85", "#BE96FF", "#957DAD", "#5E366E", "#A98CCC"]
-    )
-    fig, ax = plt.subplots()
-
-    if selected_chart_title == "Ambulances In Use Per Hour":
-        ax.bar(list(df["simulationTime[s]"]), df["amountOfSolvingAmbulances"])
-        ax.set_title("Ambulances In Use Per Hour")
-        ax.set_xlabel("Time [s]")
-        ax.set_ylabel("Ambulances In Use")
-
-    # Pozostałe przypadki dla różnych wykresów
-
-    plt.tight_layout()
-
-    return fig
 
 def create_plot(selected_date, selected_chart_title):
     file_name = f"results/{selected_date}--{selected_chart_title}.csv"
@@ -153,6 +132,22 @@ def create_plot(selected_date, selected_chart_title):
         ax.set_title("Neutralized Patrols Per District")
         ax.set_xlabel("Quantity of patrols")
         ax.set_ylabel("District")
+        fig.legend(loc="upper right")
+
+    elif selected_chart_title == "First Patrol Data":
+        simulation_time = df["simulationTime[s]"]
+        patrol_state = df["patrolState"]
+        time_in_state = df["timeInState[s]"]
+
+        fig, ax = plt.subplots()
+        ax.plot(simulation_time, time_in_state, color='orange')
+        ax.set_title("First Patrol Data")
+        ax.set_xlabel("Simulation Time [s]")
+        ax.set_ylabel("Time In State [s]")
+
+        ax2 = ax.twinx()
+        ax2.plot(simulation_time, patrol_state, color='blue')
+        ax2.set_ylabel("Patrol State")
         fig.legend(loc="upper right")
 
     plt.tight_layout()
