@@ -23,10 +23,15 @@ def plot_chart(data, selected_category):
     ax.clear()
     for city, df_list in data.items():
         for df in df_list:
-            ax.plot(df['simulationTime[s]'], df['timeInState[s]'], label=city)
+            # Konwersja czasu z sekund na minuty i godziny
+            df['timeInState[min]'] = df['timeInState[s]'] / 60
+            df['simulationTime[min]'] = df['simulationTime[s]'] / 60 / 60
+
+            ax.plot(df['simulationTime[min]'], df['timeInState[min]'], label=city)
+
     ax.set_title(selected_category)
-    ax.set_xlabel('Czas [s]')
-    ax.set_ylabel('Czas w stanie [s]')
+    ax.set_xlabel('Czas [h]')
+    ax.set_ylabel('Czas w stanie [min]')
     ax.legend()
     ax.grid(True)
     canvas.draw()
