@@ -1,8 +1,0 @@
-"simulationTime[s]","firingID","districtName","districtSafetyLevel","revokedPatrols","isNight"
-10869,98d64a87-f5ea-40af-9ef3-e4e1511ba456,Tempelhof-Schöneberg,NotSafe,1,0
-36294,748f9783-dfc3-42fb-a04d-96af68db0f2d,Charlottenburg-Wilmersdorf,NotSafe,1,0
-38412,18596a42-555e-4236-b2a3-7a72bd7344f9,Spandau,NotSafe,2,0
-60331,9af7d004-954a-4cf1-a502-32cad4e44ec6,Tempelhof-Schöneberg,NotSafe,2,1
-79478,221898ed-60b2-48e3-8f5b-5ba0ac6dca57,Spandau,NotSafe,1,1
-81608,8bce1c30-08c3-4176-a0dd-8721f5b213f6,Neukölln,NotSafe,1,1
-86129,4de14cee-d976-4680-a2ac-806f4060231d,Treptow-Köpenick,RatherSafe,1,1
