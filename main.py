@@ -49,6 +49,15 @@ def display_chart():
 root = Tk()
 root.title("Wykresy First Patrol Data")
 
+# Dodanie listy nazw plików
+file_list_label = Label(root, text="Lista plików:")
+file_list_label.pack()
+file_list_var = StringVar()
+file_list_combobox = ttk.Combobox(root, textvariable=file_list_var)
+file_list_combobox['values'] = ['First Patrol Data']
+file_list_combobox.set('First Patrol Data')
+file_list_combobox.pack()
+
 # Tworzenie etykiet i rozwijanych list
 city_label = Label(root, text="Miasto:")
 city_label.pack()
@@ -66,14 +75,14 @@ category_combobox['values'] = ['CALCULATING_PATH', 'PATROLLING', 'FIRING', 'INTE
 category_combobox.set('CALCULATING_PATH')
 category_combobox.pack()
 
+# Przycisk
+display_top_button = Button(root, text="Wyświetl", command=display_chart)
+display_top_button.pack()
+
 # Tworzenie pustego wykresu
 fig, ax = plt.subplots(figsize=(10, 6))
 canvas = FigureCanvasTkAgg(fig, master=root)
 canvas_widget = canvas.get_tk_widget()
 canvas_widget.pack()
-
-# Przycisk "Wyświetl"
-display_button = Button(root, text="Wyświetl", command=display_chart)
-display_button.pack()
 
 root.mainloop()
