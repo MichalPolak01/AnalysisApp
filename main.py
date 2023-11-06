@@ -31,6 +31,40 @@ def plot_chart(data, selected_category):
     ax.grid(True)
     canvas.draw()
 
+    # Analiza wyników
+    analyze_results(data, selected_category)
+
+# Funkcja do analizy wyników
+def analyze_results(data, selected_category):
+    analysis_text.delete(1.0, END)
+    min_time = float('inf')
+    max_time = 0
+    min_city = ""
+    max_city = ""
+    total_time = 0
+    total_count = 0
+
+    for city, df_list in data.items():
+        for df in df_list:
+            time = df['timeInState[s]'].sum()
+            total_time += time
+            total_count += len(df)
+
+            if time < min_time:
+                min_time = time
+                min_city = city
+
+            if time > max_time:
+                max_time = time
+                max_city = city
+
+    average_time = total_time / total_count
+
+    analysis_text.insert(INSERT, f"Analiza wyników dla kategorii {selected_category}:\n\n")
+    analysis_text.insert(INSERT, f"Miasto z najkrótszym czasem: {min_city}, Czas: {min_time} s\n")
+    analysis_text.insert(INSERT, f"Miasto z najdłuższym czasem: {max_city}, Czas: {max_time} s\n")
+    analysis_text.insert(INSERT, f"Średni czas dla wybranej kategorii: {average_time:.2f} s\n")
+
 # Funkcja do obsługi przycisku "Wyświetl"
 def display_chart():
     selected_city = city_var.get()
@@ -75,7 +109,7 @@ category_combobox['values'] = ['CALCULATING_PATH', 'PATROLLING', 'FIRING', 'INTE
 category_combobox.set('CALCULATING_PATH')
 category_combobox.pack()
 
-# Przycisk
+# Przycisk "Wyświetl na górę"
 display_top_button = Button(root, text="Wyświetl", command=display_chart)
 display_top_button.pack()
 
@@ -84,5 +118,9 @@ fig, ax = plt.subplots(figsize=(10, 6))
 canvas = FigureCanvasTkAgg(fig, master=root)
 canvas_widget = canvas.get_tk_widget()
 canvas_widget.pack()
+
+# Tworzenie sekcji analizy
+analysis_text = Text(root, height=10, width=60)
+analysis_text.pack()
 
 root.mainloop()
