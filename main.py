@@ -1,71 +1,79 @@
-import glob
+import pandas as pd
+import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import tkinter as tk
-from charts import create_plot, chart_titles, cities
+from tkinter import *
+from tkinter import ttk
+import os
 
+# Funkcja do wczytywania danych z pliku
+def load_data(city, category):
+    file_dir = f"results/{city}"
+    data = []
 
-# Pobierz listę dostępnych nazw plików CSV z folderu "results"
-csv_files = glob.glob('results/Tarnow/*.csv')
+    for filename in os.listdir(file_dir):
+        if filename.endswith("--First Patrol Data.csv"):
+            df = pd.read_csv(os.path.join(file_dir, filename))
+            filtered_df = df[df['patrolState'] == category]
+            data.append(filtered_df)
 
-# Funkcja do aktualizacji wykresu
-def update_plot():
-    selected_chart_title = chart_var.get()
-    selected_city = city_var.get()
-    fig = create_plot(selected_chart_title, selected_city)
+    return data
 
-    # Usuń poprzednie dane z wykresu
-    for widget in upper_frame.winfo_children():
-        widget.destroy()
-
-    # Aktualizuj wykres z nowymi danymi
-    canvas = FigureCanvasTkAgg(fig, upper_frame)
+# Funkcja do rysowania wykresu
+def plot_chart(data, selected_category):
+    ax.clear()
+    for city, df_list in data.items():
+        for df in df_list:
+            ax.plot(df['simulationTime[s]'], df['timeInState[s]'], label=city)
+    ax.set_title(selected_category)
+    ax.set_xlabel('Czas [s]')
+    ax.set_ylabel('Czas w stanie [s]')
+    ax.legend()
+    ax.grid(True)
     canvas.draw()
-    canvas.get_tk_widget().pack(side="left", fill="both", expand=True)
 
+# Funkcja do obsługi przycisku "Wyświetl"
+def display_chart():
+    selected_city = city_var.get()
+    selected_category = category_var.get()
 
-# Wybór tematu wykresu
-def select_chart():
-    chart_label = tk.Label(root, text="Select Chart Title:")
-    chart_label.pack()
+    if selected_city == 'Wszystkie miasta':
+        data = {}
+        for city in ['Tarnow', 'Krakow', 'Berlin']:
+            data[city] = load_data(city, selected_category)
+        plot_chart(data, selected_category)
+    else:
+        data = {selected_city: load_data(selected_city, selected_category)}
+        plot_chart(data, selected_category)
 
-    chart_dropdown = tk.OptionMenu(root, chart_var, *chart_titles)
-    chart_dropdown.pack()
-    selected_title = chart_var.get() or chart_titles[0]
+# Tworzenie głównego okna
+root = Tk()
+root.title("Wykresy First Patrol Data")
 
-    return selected_title
+# Tworzenie etykiet i rozwijanych list
+city_label = Label(root, text="Miasto:")
+city_label.pack()
+city_var = StringVar()
+city_combobox = ttk.Combobox(root, textvariable=city_var)
+city_combobox['values'] = ['Wszystkie miasta', 'Tarnow', 'Krakow', 'Berlin']
+city_combobox.set('Wszystkie miasta')
+city_combobox.pack()
 
-#Wybór miasta
-def select_city():
-    chart_label = tk.Label(root, text="Select City:")
-    chart_label.pack()
+category_label = Label(root, text="Kategoria:")
+category_label.pack()
+category_var = StringVar()
+category_combobox = ttk.Combobox(root, textvariable=category_var)
+category_combobox['values'] = ['CALCULATING_PATH', 'PATROLLING', 'FIRING', 'INTERVENTION', 'TRANSFER_TO_INTERVENTION']
+category_combobox.set('CALCULATING_PATH')
+category_combobox.pack()
 
-    city_dropdown = tk.OptionMenu(root, city_var, *cities)
-    city_dropdown.pack()
-    selected_city = city_var.get() or cities[0]
+# Tworzenie pustego wykresu
+fig, ax = plt.subplots(figsize=(10, 6))
+canvas = FigureCanvasTkAgg(fig, master=root)
+canvas_widget = canvas.get_tk_widget()
+canvas_widget.pack()
 
-    return selected_city
-
-
-root = tk.Tk()
-root.title('Analysis Application')
-root.state('zoomed')
-
-chart_var = tk.StringVar(root)
-city_var = tk.StringVar(root)
-
-chart_title = select_chart()
-selected_city = select_city()
-
-update_button = tk.Button(root, text="Update Plot", command=update_plot)
-update_button.pack()
-
-upper_frame = tk.Frame(root)
-upper_frame.pack(fill="both", expand=True)
-
-fig = create_plot(chart_title, selected_city)
-
-canvas = FigureCanvasTkAgg(fig, upper_frame)
-canvas.draw()
-canvas.get_tk_widget().pack(side="left", fill="both", expand=True)
+# Przycisk "Wyświetl"
+display_button = Button(root, text="Wyświetl", command=display_chart)
+display_button.pack()
 
 root.mainloop()
