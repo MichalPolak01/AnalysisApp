@@ -1,11 +1,13 @@
 import glob
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 
 # Lista dostępnych tytułów wykresów
 chart_titles = [
-    "First Patrol Data"
+    "First Patrol Data",
+    "Distinct Details"
 ]
 
 cities = [
@@ -32,12 +34,17 @@ def create_plot(selected_chart_title, selected_city):
     print("Selected file:" + selected_file)
 
     # Odczytaj dane z wybranego pliku CSV
-    df = pd.read_csv(selected_file)
+    try:
+        df = pd.read_csv(selected_file, encoding='ISO-8859-1')
+    except UnicodeDecodeError:
+        print("Nieudana próba odczytu pliku CSV.")
+
 
     plt.rcParams["axes.prop_cycle"] = plt.cycler(
         # color=["#4C2A85", "#BE96FF", "#957DAD", "#5E366E", "#A98CCC"]
         color = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF", "#800000", "#008000", "#000080", "#808000"]
     )
+
     fig, ax = plt.subplots()
 
 
@@ -56,13 +63,52 @@ def create_plot(selected_chart_title, selected_city):
 
         ax = plt.gca()
         ax.xaxis.set_major_locator(MultipleLocator(1))  # Przyrost co 1 jednostkę na osi x
-        ax.yaxis.set_major_locator(MultipleLocator(5))  # Przyrost co 1 jednostkę na osi y
+        ax.yaxis.set_major_locator(MultipleLocator(5))  # Przyrost co 5 jednostkek na osi y
 
 
         # Ustaw etykiety dla osi x i y oraz tytuł wykresu
         plt.xlabel('Simulation Time [h]')
         plt.ylabel('Time in State [min]')
         plt.title('Patrol State Simulation')
+
+        
+
+    elif selected_chart_title == "Distinct Details":
+
+        # Obliczanie wartości średnich dla poszczególnych zdarzeń
+        average_data = df.groupby('districtSafetyLevel').agg({
+        'amountOfPatrols': 'mean',
+        'amountOfPatrollingPatrols': 'mean',
+        'amountOfCalculatingPathPatrols': 'mean',
+        'amountOfTransferToInterventionPatrols': 'mean',
+        'amountOfTransferToFiringPatrols': 'mean',
+        'amountOfInterventionPatrols': 'mean',
+        'amountOfFiringPatrols': 'mean',
+        'amountOfReturningToHqPatrols': 'mean',
+        'amountOfIncidents': 'mean'
+        })
+
+        # Wyświetl średnie wartości dla poszczególnych kolumn
+        print(average_data)
+
+        # Lista kategorii
+        categories = ['Safe', 'Rather Safe', 'Not Safe']
+
+        # Iteracja przez rodzaje zdarzeń i tworzenie wykresów kołowych
+        for column in average_data.columns:
+            # Wartości dla poszczególnych kategorii
+            values = average_data[column].values
+
+            # Sprawdź, czy są jakieś niezerowe wartości
+            if any(values):
+                # Tworzenie wykresu kołowego tylko jeśli są niezerowe wartości
+                fig, ax_pie = plt.subplots()
+                ax_pie.pie(values, labels=categories, autopct='%1.1f%%', startangle=140)
+                ax_pie.set_title(f'{column}')
+                # plt.show()
+            else:
+                print(f'No valid data for {column}.')
+
 
     plt.tight_layout()
 

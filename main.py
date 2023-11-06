@@ -1,14 +1,18 @@
 import glob
+from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk
 from charts import create_plot, chart_titles, cities
 
 
 # Pobierz listę dostępnych nazw plików CSV z folderu "results"
-csv_files = glob.glob('results/Tarnow/*.csv')
+# csv_files = glob.glob('results/Tarnow/*.csv')
 
 # Funkcja do aktualizacji wykresu
 def update_plot():
+    # Zamknij wszystkie istniejące figury przed utworzeniem nowych
+    # fig.close('all')
+
     selected_chart_title = chart_var.get()
     selected_city = city_var.get()
     fig = create_plot(selected_chart_title, selected_city)
@@ -21,6 +25,11 @@ def update_plot():
     canvas = FigureCanvasTkAgg(fig, upper_frame)
     canvas.draw()
     canvas.get_tk_widget().pack(side="left", fill="both", expand=True)
+
+    # Dodaj przyciski do nawigacji między podwykresami
+    toolbar = NavigationToolbar2Tk(canvas, upper_frame)
+    toolbar.update()
+    canvas.get_tk_widget().pack(side="top", fill="both", expand=True)
 
 
 # Wybór tematu wykresu
@@ -44,7 +53,6 @@ def select_city():
     selected_city = city_var.get() or cities[0]
 
     return selected_city
-
 
 root = tk.Tk()
 root.title('Analysis Application')
