@@ -1,3 +1,4 @@
+import glob
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -70,19 +71,77 @@ def analyze_results(data, selected_category):
     analysis_text.insert(INSERT, f"Miasto z najdłuższym czasem: {max_city}, Czas: {max_time} s\n")
     analysis_text.insert(INSERT, f"Średni czas dla wybranej kategorii: {average_time:.2f} s\n")
 
-# Funkcja do obsługi przycisku "Wyświetl"
-def display_chart():
-    selected_city = city_var.get()
-    selected_category = category_var.get()
+# Wczytaj dane do Distinct Details
 
-    if selected_city == 'Wszystkie miasta':
-        data = {}
-        for city in ['Tarnow', 'Krakow', 'Berlin']:
-            data[city] = load_data(city, selected_category)
-        plot_chart(data, selected_category)
-    else:
-        data = {selected_city: load_data(selected_city, selected_category)}
-        plot_chart(data, selected_category)
+# Utwórz nazwę pliku
+file_pattern_1 = f"results/Berlin/*--Distinct_Details.csv"
+
+# Uzyskaj listę plików pasujących do wzorca
+matching_files_1 = glob.glob(file_pattern_1)
+
+# Sprawdź, czy znaleziono pasujące pliki
+if not matching_files_1:
+    print(f"Nie znaleziono pasującego pliku w katalogu: {file_pattern_1}")
+
+# Wybierz pierwszy pasujący plik (w razie gdyby było więcej)
+selected_file_1 = matching_files_1[0]
+print("Selected file:" + selected_file_1)
+
+# Odczytaj dane z wybranego pliku CSV
+try:
+    df = pd.read_csv(selected_file_1, encoding='ISO-8859-1')
+except UnicodeDecodeError:
+    print("Nieudana próba odczytu pliku CSV.")
+
+
+# Funkcja do obsługi przycisku "Wyświetl"
+def display_chart(name):
+    if (name == 'First Patrol Data'):
+        selected_city = city_var.get()
+        selected_category = category_var.get()
+
+        if selected_city == 'Wszystkie miasta':
+            data = {}
+            for city in ['Tarnow', 'Krakow', 'Berlin']:
+                data[city] = load_data(city, selected_category)
+            plot_chart(data, selected_category)
+        else:
+            data = {selected_city: load_data(selected_city, selected_category)}
+            plot_chart(data, selected_category)
+    elif (name == "Distinct Details"):
+        # Obliczanie wartości średnich dla poszczególnych zdarzeń
+        average_data = df.groupby('districtSafetyLevel').agg({
+        'amountOfPatrols': 'mean',
+        'amountOfPatrollingPatrols': 'mean',
+        'amountOfCalculatingPathPatrols': 'mean',
+        'amountOfTransferToInterventionPatrols': 'mean',
+        'amountOfTransferToFiringPatrols': 'mean',
+        'amountOfInterventionPatrols': 'mean',
+        'amountOfFiringPatrols': 'mean',
+        'amountOfReturningToHqPatrols': 'mean',
+        'amountOfIncidents': 'mean'
+        })
+
+        # Wyświetl średnie wartości dla poszczególnych kolumn
+        print(average_data)
+
+        # Lista kategorii
+        categories = ['Safe', 'Rather Safe', 'Not Safe']
+
+        # Iteracja przez rodzaje zdarzeń i tworzenie wykresów kołowych
+        for column in average_data.columns:
+            # Wartości dla poszczególnych kategorii
+            values = average_data[column].values
+
+            # Sprawdź, czy są jakieś niezerowe wartości
+            if any(values):
+                # Tworzenie wykresu kołowego tylko jeśli są niezerowe wartości
+                fig, ax_pie = plt.subplots()
+                ax_pie.pie(values, labels=categories, autopct='%1.1f%%', startangle=140)
+                ax_pie.set_title(f'{column}')
+                plt.show()
+            else:
+                print(f'No valid data for {column}.')
 
 # Tworzenie głównego okna
 root = Tk()
@@ -93,7 +152,7 @@ file_list_label = Label(root, text="Lista plików:")
 file_list_label.pack()
 file_list_var = StringVar()
 file_list_combobox = ttk.Combobox(root, textvariable=file_list_var)
-file_list_combobox['values'] = ['First Patrol Data']
+file_list_combobox['values'] = ['First Patrol Data', "Distinct Details"]
 file_list_combobox.set('First Patrol Data')
 file_list_combobox.pack()
 
@@ -115,7 +174,7 @@ category_combobox.set('CALCULATING_PATH')
 category_combobox.pack()
 
 # Przycisk "Wyświetl na górę"
-display_top_button = Button(root, text="Wyświetl", command=display_chart)
+display_top_button = Button(root, text="Wyświetl", command=lambda: display_chart(file_list_var.get()))
 display_top_button.pack()
 
 # Tworzenie pustego wykresu
