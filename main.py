@@ -197,7 +197,8 @@ def toggle_category_combobox(event):
     if selected_file == "First Patrol Data":
         category_combobox.pack()
     else:
-        category_combobox.pack_forget()
+        #category_combobox.pack_forget()
+        pass
 
 # Dodaj zdarzenie do rozwijanej listy z wyborem pliku
 file_list_combobox.bind("<<ComboboxSelected>>", toggle_category_combobox)
