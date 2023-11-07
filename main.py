@@ -16,6 +16,9 @@ def load_data(city, category):
             df = pd.read_csv(os.path.join(file_dir, filename))
             filtered_df = df[df['patrolState'] == category]
             data.append(filtered_df)
+        if filename.endswith("--Distinct Details.csv"):
+            df = pd.read_csv(os.path.join(file_dir, filename))
+            data.append(df)
 
     return data
 
@@ -143,6 +146,8 @@ def display_chart(name):
             else:
                 print(f'No valid data for {column}.')
 
+
+
 # Tworzenie głównego okna
 root = Tk()
 root.title("Wykresy First Patrol Data")
@@ -186,5 +191,18 @@ canvas_widget.pack()
 # Tworzenie sekcji analizy
 analysis_text = Text(root, height=10, width=60)
 analysis_text.pack()
+
+def toggle_category_combobox(event):
+    selected_file = file_list_var.get()
+    if selected_file == "First Patrol Data":
+        category_combobox.pack()
+    else:
+        category_combobox.pack_forget()
+
+# Dodaj zdarzenie do rozwijanej listy z wyborem pliku
+file_list_combobox.bind("<<ComboboxSelected>>", toggle_category_combobox)
+
+# Wywołaj funkcję, aby dostosować widoczność na początek
+toggle_category_combobox(None)
 
 root.mainloop()
