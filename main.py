@@ -1,65 +1,136 @@
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import pandas as pd
 import tkinter as tk
-# import customtkinter
-
-FileName = 'District Interventions.csv'
-
-def plot(fileName):
-    df = pd.read_csv('../materialy/praca inżynierska/police_simulation-main/results/'+fileName, sep=',', header=None, index_col=False)
-    
-    plt.rcParams["axes.prop_cycle"] = plt.cycler(
-        color = ["#4C2A85", "#BE96FF", "#957DAD", "#5E366E", "#A98CCC"]
-    )
-    fig, ax = plt.subplots()
-
-    # ax.bar(df[0], df[1])
-    ax.barh(list(df[0]), df[1])
-    ax.set_title("Neutralized Patrols Per District")
-    ax.set_xlabel("Quantiy of parols")
-    ax.set_ylabel("Distinct")
-
-    # plt.xticks(rotation = -45)
-    plt.tight_layout()
-    # plt.show()
-
-    pie, ax2 = plt.subplots()
-    ax2.pie(list(map(float, df[1])), labels=df[0], autopct='%1.1f%%', startangle=90)
-    ax2.axis('equal')
-    ax2.set_title("Neutralized Patrols Per District")
-    # plt.show()
-
-    return fig, pie
+from tkinter import ttk
+from tkinter import messagebox
+from distinct_details import frame_layout_for_distinct_details, load_options_for_distinct_details
+from load_data import load_data
+from first_patrol_data import frame_layout_for_first_patrol_data, load_options_for_first_patrol_data
 
 
-plot(FileName)
+# Tematy wykresów
+chart_titles = [
+    "First Patrol Data",
+    "Distinct Details"
+]
 
-# # Create a window
-def window():
-    root = tk.Tk()
-    root.title('Analysis Application')
-    root.state('zoomed')
+# Miasta
+cities = [
+    "",
+    "Tarnow",
+    "Berlin",
+    "Krakow",
+    "Warszawa"
+]
 
-    side_frame = tk.Frame(root, bg="#4C2A85")
-    side_frame.pack(side = "top", fill = "both")
+# Alert
+def show_alert(text):
+    messagebox.showinfo("Warning!", text)
 
-    label = tk.Label(side_frame, text = 'Analyse', bg = "#4C2A85", fg = "white", font = ("Verdana", 25) )
-    label.pack(pady = 20)
 
-    upper_frame = tk.Frame(root)
-    upper_frame.pack(fill = "both", expand = True)
+###########################
+######### WINDOW ##########
+###########################
+root = tk.Tk()
+root.geometry("1280x920")
+# root.state('zoomed') # Dopasuj do ekranu
 
-    fig, pie = plot(FileName)
+# Dodanie stylu
+style = ttk.Style(root)
+root.tk.call("source", "forest-light.tcl")
+root.tk.call("source", "forest-dark.tcl")
+style.theme_use("forest-dark")
 
-    canvas = FigureCanvasTkAgg(fig, upper_frame)
-    canvas.draw()
-    canvas.get_tk_widget().pack(side = "left", fill = "both", expand = True)
+# Ustawienie szerokości i wysokości komponentów
+root.grid_columnconfigure(0, minsize=300)
+root.grid_columnconfigure(1, weight=1)
+root.grid_rowconfigure(0, weight=1)
 
-    canvas2 = FigureCanvasTkAgg(pie, upper_frame)
-    canvas2.draw()
-    canvas2.get_tk_widget().pack(side = "left", fill = "both", expand = True)
 
-    root.mainloop()
+###########################
+####### NAVIGATION ########
+###########################
+frame1 = ttk.Frame(root, style="TFrame", height=root.winfo_height())
+frame1.grid(row=0, column=0, sticky=tk.NSEW)
+frame1.grid_columnconfigure(0, weight=1)
+frame1.grid_propagate(False)
 
-window()
+widgets_frame = ttk.LabelFrame(frame1, width=1, text="Set data")
+widgets_frame.grid(row=0, column=0, padx=20, pady=10, sticky="nsew")
+widgets_frame.grid_columnconfigure(0, weight=1)
+
+file_list_label = ttk.Label(widgets_frame, text="List of topics:")
+file_list_label.grid(row=0, column=0, padx=15, pady=5, sticky="nsew")
+
+# Wybór tematu wykresu
+select_topic = ttk.Combobox(widgets_frame, values=chart_titles)
+select_topic.current(0)
+select_topic.grid(row=1, column=0, padx=15, pady=5, sticky="nsew")
+
+city_frame = ttk.LabelFrame(widgets_frame, text="Set city/cities")
+city_frame.grid(row=2, column=0, padx=20, pady=10)
+
+# Wybór miast
+city_comboboxes = []
+selected_cities = set()
+
+def show_available_cities(*args):
+    selected_cities.clear()
+    for combobox in city_comboboxes:
+        selected_city = combobox.get()
+        if selected_city:
+            selected_cities.add(selected_city)
+
+    available_cities = [city for city in cities if city not in selected_cities]
+
+    for combobox in city_comboboxes:
+        current_value = combobox.get()
+        combobox['values'] = available_cities
+        combobox.set('') if current_value in available_cities else current_value
+
+for i in range(3):
+    city_combobox = ttk.Combobox(city_frame, values=cities)
+    city_combobox.grid(row=i, column=0, padx=15, pady=5, sticky="nsew")
+    city_comboboxes.append(city_combobox)
+
+for combobox in city_comboboxes:
+    combobox.bind("<<ComboboxSelected>>", show_available_cities)
+  
+# Ładowanie danych
+button = ttk.Button(widgets_frame, text="Load data", command=lambda: load_preset_options(select_topic.get()))
+button.grid(row=3, column=0, padx=15, pady=5, sticky="nsew")
+
+
+###########################
+######### CONTENT #########
+###########################
+frame2 = ttk.Frame(root, height=root.winfo_height(), style="Green.TFrame")
+frame2.grid(row=0, column=1, sticky=tk.NSEW)
+
+# Funkcja ładująca dane
+def load_preset_options(chart_topic):
+    if (len(selected_cities) == 0):
+        show_alert("Choose at least 1 city!")
+    else:
+        # for widget in frame1.winfo_children():
+        #     widget.destroy()
+        for widget in frame2.winfo_children():
+            widget.destroy()
+
+        data = load_data(selected_cities, chart_topic)
+        selected_cities_list = list(selected_cities)
+        match chart_topic:
+            case "First Patrol Data":
+                load_options_for_first_patrol_data(frame1, selected_cities_list, data)
+                frame_layout_for_first_patrol_data(frame2)
+            case "Distinct Details":
+                load_options_for_distinct_details(frame1, selected_cities_list, data)
+                frame_layout_for_distinct_details(frame2)
+
+
+###########################
+########## STYLE ##########
+###########################
+style = ttk.Style(root)
+root.title('Analysis Application')
+style.configure("Green.TFrame", background="#217346")
+
+root.mainloop()
