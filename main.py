@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+from distinct_details import frame_layout_for_distinct_details, load_options_for_distinct_details
 from load_data import load_data
 from first_patrol_data import frame_layout_for_first_patrol_data, load_options_for_first_patrol_data
 
@@ -29,7 +30,7 @@ def show_alert(text):
 ######### WINDOW ##########
 ###########################
 root = tk.Tk()
-root.geometry("1000x700")
+root.geometry("1280x920")
 # root.state('zoomed') # Dopasuj do ekranu
 
 # Dodanie stylu
@@ -109,6 +110,11 @@ def load_preset_options(chart_topic):
     if (len(selected_cities) == 0):
         show_alert("Choose at least 1 city!")
     else:
+        # for widget in frame1.winfo_children():
+        #     widget.destroy()
+        for widget in frame2.winfo_children():
+            widget.destroy()
+
         data = load_data(selected_cities, chart_topic)
         selected_cities_list = list(selected_cities)
         match chart_topic:
@@ -116,13 +122,15 @@ def load_preset_options(chart_topic):
                 load_options_for_first_patrol_data(frame1, selected_cities_list, data)
                 frame_layout_for_first_patrol_data(frame2)
             case "Distinct Details":
-                print("2") # To do
+                load_options_for_distinct_details(frame1, selected_cities_list, data)
+                frame_layout_for_distinct_details(frame2)
 
 
 ###########################
 ########## STYLE ##########
 ###########################
 style = ttk.Style(root)
+root.title('Analysis Application')
 style.configure("Green.TFrame", background="#217346")
 
 root.mainloop()
