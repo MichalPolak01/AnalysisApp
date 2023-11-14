@@ -55,7 +55,7 @@ def load_options_for_state_details(frame, selected_cities, data):
     state_dropdown.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
 
     all_patrols_id = data['patrolID'].unique()
-    patrols_numbers = list(range(len(all_patrols_id)))
+    patrols_numbers = list(all_patrols_id)
 
     set_patrol_frame = ttk.LabelFrame(options_frame, text="Set patrol")
     set_patrol_frame.grid(row=2, column=0, padx=20, pady=10, sticky="nsew")
@@ -194,11 +194,12 @@ def draw_chart(data, frame, city):
     plt.subplots_adjust(left=0.15, right=0.95)  # Dostosuj według potrzeb
 
     # Oblicz średnią liczbę przejść do innych stanów
-    mean_previous_state_counts = data['previousPatrolState'].value_counts().mean()
+    mean_previous_state_counts = data['currentPatrolState'].value_counts().mean()
 
-    # # Wyświetl średnią liczbę przejść do innych stanów, jeśli zaznaczono opcję
+    # Wyświetl średnią liczbę przejść do innych stanów, jeśli zaznaczono opcję
     if average_var.get():
-        plt.axhline(mean_previous_state_counts, color='red', linestyle='dashed', linewidth=2, label='Average Transition Count')
+        plt.axvline(mean_previous_state_counts, color='red', linestyle='dashed', linewidth=2,
+                    label='Average Transition Count')
         plt.legend()
 
     # Dodaj etykiety dla osi x i y oraz tytuł wykresu
