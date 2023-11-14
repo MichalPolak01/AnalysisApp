@@ -237,11 +237,14 @@ def analyze(data, frame, groupby="previousPatrolState", count_by="currentPatrolS
     # Analiza danych
     grouped_data = data.groupby([groupby, count_by]).size().reset_index(name="count")
 
+    all = grouped_data['count'].sum()
+    print(all)
+
     # Dodaj kolumnę z procentowym udziałem
-    grouped_data['percentage'] = grouped_data.groupby(count_by)['count'].transform(lambda x: x / x.sum() * 100)
+    grouped_data['percentage'] = grouped_data.groupby(count_by)['count'].transform(lambda x: x / all * 100)
 
     # Sortuj dane względem kolumny "count"
-    grouped_data = grouped_data.sort_values(by="count", ascending=False)
+    # grouped_data = grouped_data.sort_values(by="count", ascending=False)
 
     print(grouped_data)
 
@@ -312,6 +315,7 @@ def analyze(data, frame, groupby="previousPatrolState", count_by="currentPatrolS
     canvas = FigureCanvasTkAgg(fig, master=frame)
     canvas.draw()
     canvas.get_tk_widget().pack(side=tk.LEFT, padx=10, pady=10)
+
 
 
     # # Utwórz wykres kołowy
