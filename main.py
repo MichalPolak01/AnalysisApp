@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+from changing_state_details import frame_layout_for_state_details, load_options_for_state_details
 from distinct_details import frame_layout_for_distinct_details, load_options_for_distinct_details
 from load_data import load_data
 from first_patrol_data import frame_layout_for_first_patrol_data, load_options_for_first_patrol_data
@@ -9,7 +10,8 @@ from first_patrol_data import frame_layout_for_first_patrol_data, load_options_f
 # Tematy wykresów
 chart_titles = [
     "First Patrol Data",
-    "Distinct Details"
+    "Distinct Details",
+    "Changing State Details"
 ]
 
 # Miasta
@@ -30,8 +32,8 @@ def show_alert(text):
 ######### WINDOW ##########
 ###########################
 root = tk.Tk()
-root.geometry("1280x920")
-# root.state('zoomed') # Dopasuj do ekranu
+# root.geometry("1280x920")
+root.state('zoomed') # Dopasuj do ekranu
 
 # Dodanie stylu
 style = ttk.Style(root)
@@ -40,7 +42,7 @@ root.tk.call("source", "forest-dark.tcl")
 style.theme_use("forest-dark")
 
 # Ustawienie szerokości i wysokości komponentów
-root.grid_columnconfigure(0, minsize=300)
+root.grid_columnconfigure(0, minsize=310)
 root.grid_columnconfigure(1, weight=1)
 root.grid_rowconfigure(0, weight=1)
 
@@ -124,6 +126,9 @@ def load_preset_options(chart_topic):
             case "Distinct Details":
                 load_options_for_distinct_details(frame1, selected_cities_list, data)
                 frame_layout_for_distinct_details(frame2)
+            case  "Changing State Details":
+                load_options_for_state_details(frame1, selected_cities_list, data)
+                frame_layout_for_state_details(frame2)
 
 
 ###########################

@@ -19,6 +19,13 @@ switch_option = "city"
 ####### NAVIGATION ########
 ###########################
 def load_options_for_first_patrol_data(frame, selected_cities, data):
+    # Zmniejszenie ramki
+    children = frame.winfo_children()
+    for child in children:
+        info = child.grid_info()
+        if info['row'] >= 1:
+            child.destroy()
+
     global city_var
     city_var = tk.StringVar()
 
@@ -28,16 +35,23 @@ def load_options_for_first_patrol_data(frame, selected_cities, data):
     # Frame opcje dotyczące wykresu
     options_frame = ttk.LabelFrame(frame, text="Set options")
     options_frame.grid(row=1, column=0, padx=20, pady=10, sticky="nsew")
+    options_frame.columnconfigure(0, weight=1)
 
-    mode_switch = ttk.Checkbutton(options_frame, text="City | Data", style="Switch", command=lambda: toggle_mode(selected_cities, options_frame, mode_switch))
+    city_or_state_frame = ttk.LabelFrame(options_frame, text="City Or State")
+    city_or_state_frame.grid(row=0, column=0, padx=20, pady=10, sticky="nsew")
+
+    mode_switch = ttk.Checkbutton(city_or_state_frame, text="City | State", style="Switch", command=lambda: toggle_mode(selected_cities, city_or_state_frame, mode_switch))
     mode_switch.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
-    toggle_mode(selected_cities, options_frame, mode_switch)
+    toggle_mode(selected_cities, city_or_state_frame, mode_switch)
 
-    mode_switch_presentation = ttk.Checkbutton(options_frame, text="Chart | Table", style="Switch", command=lambda: toggle_mode_presentation(data, mode_switch_presentation))
-    mode_switch_presentation.grid(row=10, column=0, padx=5, pady=10, sticky="nsew")
+    display_frame = ttk.LabelFrame(options_frame, text="Display")
+    display_frame.grid(row=1, column=0, padx=20, pady=10, sticky="nsew")
+
+    mode_switch_presentation = ttk.Checkbutton(display_frame, text="Chart | Table", style="Switch", command=lambda: toggle_mode_presentation(data, mode_switch_presentation))
+    mode_switch_presentation.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
 
     button = ttk.Button(options_frame, text="Load data", command=lambda: show_chart(data, mode_switch_presentation))
-    button.grid(row=11, column=0, padx=15, pady=5, sticky="nsew")
+    button.grid(row=2, column=0, padx=15, pady=5, sticky="nsew")
 
 
 city_state_radios = []

@@ -1,40 +1,63 @@
 import tkinter as tk
 from tkinter import ttk
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 
 from matplotlib import pyplot as plt
 
-city_state_radios = []
-
 def load_options_for_distinct_details(frame, selected_cities, data):
+    # Zmniejszenie ramki
+    children = frame.winfo_children()
+    for child in children:
+        info = child.grid_info()
+        if info['row'] >= 1:
+            child.destroy()
+
     global city_var
     city_var = tk.StringVar()
+
+    global type_var
+    type_var = tk.StringVar()
 
     # Frame opcje dotyczące wykresu
     options_frame = ttk.LabelFrame(frame, text="Set options")
     options_frame.grid(row=1, column=0, padx=20, pady=10, sticky="nsew")
-    # options_frame.update_idletasks()
-    # options_frame.place_configure(width=options_frame.winfo_reqwidth(), height=options_frame.winfo_reqheight())
+    options_frame.columnconfigure(0, weight=1)
 
+    city__frame = ttk.LabelFrame(options_frame, text="City")
+    city__frame.grid(row=0, column=0, padx=20, pady=10, sticky="nsew")
 
-    # for radio in city_state_radios:
-    #     radio.destroy()
-
-    mode_radio = ttk.Radiobutton(options_frame, text="All", value="All", variable=city_var)
+    mode_radio = ttk.Radiobutton(city__frame, text="All", value="All", variable=city_var)
     mode_radio.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
-    city_state_radios.append(mode_radio)
+    # city_radio_var.append(mode_radio)
 
     for i, city in enumerate(selected_cities):
-        mode_radio = ttk.Radiobutton(options_frame, text=city, value=city, variable=city_var)
+        mode_radio = ttk.Radiobutton(city__frame, text=city, value=city, variable=city_var)
         mode_radio.grid(row=i+1, column=0, padx=5, pady=5, sticky="nsew")
-        city_state_radios.append(mode_radio)
+        # city_radio_var.append(mode_radio)
     city_var.set("All")
+
+    type__frame = ttk.LabelFrame(options_frame, text="Type")
+    type__frame.grid(row=1, column=0, padx=20, pady=10, sticky="nsew")
+
+    # type_radio = ttk.Radiobutton(type__frame, text="All", value="All", variable=type_var)
+    # type_radio.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+    # # type_radio_var.append(type_radio)
+
+    global type_dropdown
+    type_dropdown = ttk.Combobox(type__frame, values=types_of_patrol['Names'], width=25)
+    type_dropdown.current(0)
+    type_dropdown.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+
+    # for i, city in enumerate(types):
+    #     type_radio = ttk.Radiobutton(type__frame, text=city, value=city, variable=type_var)
+    #     type_radio.grid(row=i+1, column=0, padx=5, pady=5, sticky="nsew")
+    #     # type_radio_var.append(type_radio)
+    # type_var.set("All")
 
     button = ttk.Button(options_frame, text="Load data", command=lambda: show_chart(data))
     button.grid(row=5, column=0, padx=15, pady=5, sticky="nsew")
 
-    # options_frame.update_idletasks()
-    
+
 def frame_layout_for_distinct_details(frame2):
     # Utwórz frame_chart
     frame2.grid_columnconfigure(0, weight=2)
@@ -56,53 +79,109 @@ def frame_layout_for_distinct_details(frame2):
 
 
 def show_chart(data):
-    if (city_var.get() != ''):
-        if (city_var.get() == 'All'):
-            city_data = data
+    if city_var.get() != '':
+        if city_var.get() == 'All':
+            selected_data = data 
         else:
             # Wybierz dane tylko dla wybranego miasta
-            city_data = data[data['City'] ==  city_var.get()]
+            selected_data = data[data['City'] ==  city_var.get()]
 
-        grouped_data = city_data.groupby('districtSafetyLevel').agg({
-        'amountOfPatrols': 'mean',
-        'amountOfPatrollingPatrols': 'mean',
-        'amountOfCalculatingPathPatrols': 'mean',
-        'amountOfTransferToInterventionPatrols': 'mean',
-        'amountOfTransferToFiringPatrols': 'mean',
-        'amountOfInterventionPatrols': 'mean',
-        'amountOfFiringPatrols': 'mean',
-        # 'amountOfReturningToHqPatrols': 'mean',
-        'amountOfIncidents': 'mean',
-        'isNight' : 'mean'
-        })
+        index_of_selected_type = types_of_patrol["Names"].index( type_dropdown.get())
+        names_in_df = types_of_patrol["names_in_df"][index_of_selected_type]
 
-        draw_chart(grouped_data, frame_chart, city_var.get())
+        if type_dropdown.get() == 'All':
+            grouped_data = selected_data.groupby('districtSafetyLevel').agg({
+                'amountOfPatrols': 'sum',
+                'amountOfPatrollingPatrols': 'sum',
+                'amountOfCalculatingPathPatrols': 'sum',
+                'amountOfTransferToInterventionPatrols': 'sum',
+                'amountOfTransferToFiringPatrols': 'sum',
+                'amountOfInterventionPatrols': 'sum',
+                'amountOfFiringPatrols': 'sum',
+                # 'amountOfReturningToHqPatrols': 'sum',
+                'amountOfIncidents': 'sum',
+                'isNight' : 'sum'
+            })
+        else:
+            grouped_data = selected_data.groupby('districtSafetyLevel').agg({
+                names_in_df: 'sum'
+            })
 
-        analyze(data, frame_analise, "districtSafetyLevel")
+
+    # if type_dropdown.get() == 'All':
+    draw_charts_for_each_types_of_patrol(grouped_data, frame_chart, city_var.get(), names_in_df)
+
+    analyze(grouped_data, frame_analise, names_in_df, "districtSafetyLevel")
+
+    # else:
+    #     index_of_selected_type = types_of_patrol["Names"].index(type_dropdown.get())
+    #     names_in_df = types_of_patrol["names_in_df"][index_of_selected_type]
+    #     print(names_in_df)
+    #     selected_data = data[data[names_in_df] ==] # zle
+       
         
-type = [
-    "Patrols",
-    "Patrolling Patrols",
-    "Calculating Path Patrols",
-    "Transfer To Intervention Patrols",
-    "Transfer To Firing Patrols",
-    "Intervention Patrols",
-    "Firing Patrols",
-    # "Returning To Hq Patrols"
-    "Incidents",
-    "Night"
-]
+# types = [
+#     "All",
+#     "Patrols",
+#     "Patrolling Patrols",
+#     "Calculating Path Patrols",
+#     "Transfer To Intervention Patrols",
+#     "Transfer To Firing Patrols",
+#     "Intervention Patrols",
+#     "Firing Patrols",
+#     # "Returning To Hq Patrols"
+#     "Incidents",
+#     "Night"
+# ]
 
-def draw_chart(data, frame, city):
-    # Lista kategorii
-    categories = ['Safe', 'Rather Safe', 'Not Safe']
+types_of_patrol = {
+    "Names": [
+        "All",
+        "Patrols",
+        "Patrolling Patrols",
+        "Calculating Path Patrols",
+        "Transfer To Intervention Patrols",
+        "Transfer To Firing Patrols",
+        "Intervention Patrols",
+        "Firing Patrols",
+        "Incidents",
+        "Night"
+    ],
+    "names_in_df": [
+        'all',
+        'amountOfPatrols',
+        'amountOfPatrollingPatrols',
+        'amountOfCalculatingPathPatrols',
+        'amountOfTransferToInterventionPatrols',
+        'amountOfTransferToFiringPatrols',
+        'amountOfInterventionPatrols',
+        'amountOfFiringPatrols',
+        'amountOfIncidents',
+        'isNight'
+    ]
+}
+# Lista kategorii
+categories = ['Safe', 'Rather Safe', 'Not Safe']
 
+
+
+
+# def draw_chart_for_selected_type_of_patrol():
+
+
+
+
+def draw_charts_for_each_types_of_patrol(data, frame, city, type_of_patrol):
     # Usuń wszystkie istniejące widgety z frame
     for widget in frame.winfo_children():
         widget.destroy()
 
     # Sprawdź, czy istnieją dane do wyświetlenia
-    if not data.empty:
+    
+
+
+
+    if type_of_patrol == 'all':
         fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(16, 9))
 
         fig.patch.set_facecolor('#313131')
@@ -117,36 +196,93 @@ def draw_chart(data, frame, city):
             if i < len(data.columns):
                 ax_pie = axes[row, col]
                 ax_pie.pie(data[column], labels=categories, autopct='%1.1f%%', startangle=140)
-                ax_pie.set_title(type[i])
+                ax_pie.set_title(types_of_patrol['Names'][i + 1])
 
                 # Zmiana koloru tekstu
                 ax_pie.title.set_color('#217346')
 
                 for text_obj in ax_pie.texts:
                     text_obj.set_color('white')
+    else:
+        fig, axes = plt.subplots(figsize=(16, 9))    
+        fig.patch.set_facecolor('#313131')
+        fig.patch.set_alpha(1.0)
 
-        # Dostosuj pozycję subplotów
-        fig.subplots_adjust(top=0.9, bottom=0.1, left=0.1, right=0.95, hspace=0.5, wspace=0.3)
+        # index_of_selected_type = types_of_patrol["Names"].index(type_of_patrol)
+        # names_in_df = types_of_patrol["names_in_df"][index_of_selected_type]
 
-        # Dodaj tytuł nad wszystkimi wykresami
-        plt.suptitle(f'City: {city}', fontsize=16, color='white')
+        ax_pie = axes
+        ax_pie.pie(data[type_of_patrol], labels=categories, autopct='%1.1f%%', startangle=140)
+        ax_pie.set_title(type_of_patrol)
 
-        # Osadź wykres w interfejsie tkinter
-        canvas = FigureCanvasTkAgg(fig, master=frame)  # Utwórz obiekt canvas z wykresem fig
-        canvas.draw()  # Narysuj wykres na canvas
+        # Zmiana koloru tekstu
+        ax_pie.title.set_color('#217346')
 
-        # Umieść canvas w grid w frame
-        canvas.get_tk_widget().pack(side=tk.LEFT, padx=10, pady=10)
+        for text_obj in ax_pie.texts:
+            text_obj.set_color('white')
 
-def analyze(data, frame, groupby="districtSafetyLevel"):
+    # Dostosuj pozycję subplotów
+    fig.subplots_adjust(top=0.85, bottom=0, left=0.1, right=0.95, hspace=0.5, wspace=0.3)
+
+    # Dodaj tytuł nad wszystkimi wykresami
+    plt.suptitle(f'City: {city}', fontsize=16, color='white')
+
+    # Osadź wykres w interfejsie tkinter
+    canvas = FigureCanvasTkAgg(fig, master=frame)  # Utwórz obiekt canvas z wykresem fig
+    canvas.draw()  # Narysuj wykres na canvas
+
+    # Dodaj przyciski do nawigacji między podwykresami
+    toolbar = NavigationToolbar2Tk(canvas, frame)  # Zmieniono na NavigationToolbar2Tk
+
+    toolbar.update()
+
+    # Umieść pasek narzędziowy w frame
+    toolbar.pack(side=tk.BOTTOM, fill=tk.X)
+
+    # Umieść canvas w grid w frame
+    canvas.get_tk_widget().pack(side=tk.LEFT, padx=10, pady=10)
+
+def analyze(data, frame, type_of_patrol, groupby="districtSafetyLevel"):
     for widget in frame.winfo_children():
         widget.destroy()
 
     # Usuń dane, gdzie amountOfPatrols wynosi 0
-    data = data[data["amountOfPatrols"] != 0]
+    # data = data[data["amountOfPatrols"] != 0]
+
+    # if type_of_patrol != 'all':
+    #     data = data[type_of_patrol]
+
+    # ax_pie.pie(data[names_in_df], labels=categories, autopct='%1.1f%%', startangle=140)
 
     # Analiza danych
-    grouped_data = data.groupby(groupby)["amountOfPatrols"].sum().reset_index()
+    #     print(data)
+    #     print(type_of_patrol)
+    #     grouped_data = data.groupby(groupby)[type_of_patrol].sum().reset_index()
+    # else:
+    column_to_ignore = 'districtSafetyLevel'
+
+    if type_of_patrol == 'all':
+        type_of_patrol = 'amountOfPatrols'
+        grouped_data = data.groupby(groupby)[type_of_patrol].sum().reset_index()
+
+    else:
+        grouped_data = data.groupby(groupby)[type_of_patrol].sum().reset_index()
+
+    print(grouped_data)
+
+    # Tworzenie nowej kolumny z sumą dla każdego wiersza, zaczynając od drugiej kolumny
+    # data['Sum'] = data.iloc[:, 2:].sum(axis=1)
+
+    # # Wybieranie tylko dwóch kolumn
+    # grouped_data = data[['districtSafetyLevel', 'Sum']]
+
+    # Wybierz kolumny do zsumowania
+
+    # print(data)
+    # # Dodaj kolumnę 'Sum' z sumą wartości w każdym wierszu, pomijając kolumnę 'districtSafetyLevel'
+    # data['Sum'] = data.drop('districtSafetyLevel', axis=1).sum(axis=1)
+
+    # print(data)
 
     # Utwórz drzewo do wyświetlania danych
     tree = ttk.Treeview(frame, columns=["group", "sum"])
@@ -160,7 +296,7 @@ def analyze(data, frame, groupby="districtSafetyLevel"):
     tree.column("#2", anchor="center")
 
     for index, row in grouped_data.iterrows():
-        tree.insert("", "end", values=(row[groupby], row["amountOfPatrols"]))
+        tree.insert("", "end", values=(row[groupby], row[type_of_patrol]))
 
     tree.pack(side="left", fill="both", expand=True)
 
@@ -194,7 +330,7 @@ def analyze(data, frame, groupby="districtSafetyLevel"):
     ax.spines['left'].set_color('white')
     ax.spines['right'].set_color('white')
 
-    ax.bar(grouped_data[groupby], grouped_data["amountOfPatrols"])
+    ax.bar(grouped_data[groupby], grouped_data[type_of_patrol])
     ax.set_xlabel(groupby)
     ax.set_ylabel("Amount")
     ax.set_title("District Patrols Analysis")
