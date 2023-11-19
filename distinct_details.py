@@ -1,7 +1,10 @@
 import tkinter as tk
 from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-
+import tkinter as tk
+from tkinter import ttk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+import tkinter.filedialog
 from matplotlib import pyplot as plt
 
 def load_options_for_distinct_details(frame, selected_cities, data):
@@ -57,7 +60,41 @@ def load_options_for_distinct_details(frame, selected_cities, data):
     button = ttk.Button(options_frame, text="Load data", command=lambda: show_chart(data))
     button.grid(row=5, column=0, padx=15, pady=5, sticky="nsew")
 
+    button_export = ttk.Button(options_frame, text="Export Data",
+                               command=lambda: export_data_to_csv(data, city_var.get(), type_dropdown.get()))
+    button_export.grid(row=6, column=0, padx=15, pady=5, sticky="nsew")
 
+
+def export_data_to_csv(data, city, type_of_patrol):
+    if not city:
+        city = "default_city"
+
+    if not type_of_patrol:
+        type_of_patrol = "default_type"
+
+    file_name = f"Patrol_State_Simulation_{city}_{type_of_patrol}"
+
+    file_path = tkinter.filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")],
+                                                     initialfile=f"{file_name}.csv")
+
+    if file_path:
+        # Select columns based on the type_of_patrol
+        if type_of_patrol == 'All':
+            selected_columns = data.columns
+        else:
+            index_of_selected_type = types_of_patrol["Names"].index(type_of_patrol)
+            names_in_df = types_of_patrol["names_in_df"][index_of_selected_type]
+            selected_columns = ['simulationTime[s]', 'districtName', 'districtSafetyLevel', names_in_df]
+
+        # Filter data based on selected city and type_of_patrol
+        if city_var.get() != "All":
+            filtered_data = data[data['City'].notnull() & (data['City'] == city_var.get())][selected_columns]
+        else:
+            filtered_data = data[data['City'].notnull()][selected_columns]
+
+        # Save filtered data to CSV
+        filtered_data.to_csv(file_path, index=False)
+        print(f"Data exported to {file_path}")
 def frame_layout_for_distinct_details(frame2):
     # Utwórz frame_chart
     frame2.grid_columnconfigure(0, weight=2)
