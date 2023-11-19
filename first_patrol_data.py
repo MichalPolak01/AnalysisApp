@@ -3,6 +3,8 @@ from tkinter import ttk
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+import tkinter.filedialog
+import pandas as pd
 
 patrol_state_list = [
     "CALCULATING_PATH",
@@ -52,6 +54,9 @@ def load_options_for_first_patrol_data(frame, selected_cities, data):
 
     button = ttk.Button(options_frame, text="Load data", command=lambda: show_chart(data, mode_switch_presentation))
     button.grid(row=2, column=0, padx=15, pady=5, sticky="nsew")
+
+    button_export = ttk.Button(options_frame, text="Export Data", command=lambda: export_data_to_csv(data, city_var.get() or state_var.get()))
+    button_export.grid(row=3, column=0, padx=15, pady=5, sticky="nsew")
 
 
 city_state_radios = []
@@ -286,3 +291,16 @@ def show_data_in_treeview(data):
     # Pakowanie Treeview i paska przewijania
     tree.pack(side="left", fill="both", expand=True)
     scrollbar.pack(side="right", fill="y")
+
+
+def export_data_to_csv(data, identifier):
+    if not identifier:
+        identifier = "default_identifier"
+
+    file_name = f"Patrol State Simulation for {identifier}"
+
+    file_path = tkinter.filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")], initialfile=f"{file_name}.csv")
+
+    if file_path:
+        data.to_csv(file_path, index=False)
+        print(f"Data exported to {file_path}")
