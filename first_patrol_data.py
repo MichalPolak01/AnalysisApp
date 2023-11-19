@@ -61,6 +61,8 @@ def load_options_for_first_patrol_data(frame, selected_cities, data):
 
 city_state_radios = []
 def toggle_mode(selected_cities, options_frame, mode_switch):
+    global switch_option  # Dodaj globalne switch_option, aby można było go zmieniać
+
     city_var.set("")
     state_var.set("")
 
@@ -68,12 +70,14 @@ def toggle_mode(selected_cities, options_frame, mode_switch):
         radio.destroy()
 
     if mode_switch.instate(["selected"]):
+        switch_option = "state"  # Ustaw opcję switch_option na "state"
         for i, state in enumerate(patrol_state_list):
             mode_radio = ttk.Radiobutton(options_frame, text=state, value=state, variable=state_var)
             mode_radio.grid(row=i+1, column=0, padx=5, pady=5, sticky="nsew")
             city_state_radios.append(mode_radio)
         state_var.set(patrol_state_list[0])
     else:
+        switch_option = "city"  # Ustaw opcję switch_option na "city"
         for i, city in enumerate(selected_cities):
             mode_radio = ttk.Radiobutton(options_frame, text=city, value=city, variable=city_var)
             mode_radio.grid(row=i+1, column=0, padx=5, pady=5, sticky="nsew")
@@ -294,6 +298,8 @@ def show_data_in_treeview(data):
 
 
 def export_data_to_csv(data, identifier):
+    global switch_option
+
     if not identifier:
         identifier = "default_identifier"
 
@@ -302,5 +308,21 @@ def export_data_to_csv(data, identifier):
     file_path = tkinter.filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")], initialfile=f"{file_name}.csv")
 
     if file_path:
-        data.to_csv(file_path, index=False)
+        if switch_option == "state":
+            # Jeśli wybrano opcję "State" i jest zaznaczony konkretny stan (state_var), eksportuj tylko dane z tego stanu
+            if state_var.get():
+                filtered_data = data[data['patrolState'].str.upper() == state_var.get().upper()]
+                filtered_data.to_csv(file_path, index=False)
+            else:
+                # Jeśli nie zaznaczono stanu, eksportuj pełne dane
+                data.to_csv(file_path, index=False)
+        elif switch_option == "city":
+            # Jeśli wybrano opcję "City" i jest zaznaczone konkretne miasto (city_var), eksportuj tylko dane z tego miasta
+            if city_var.get():
+                filtered_data = data[data['City'].str.upper() == city_var.get().upper()]
+                filtered_data.to_csv(file_path, index=False)
+            else:
+                # Jeśli nie zaznaczono miasta, eksportuj pełne dane
+                data.to_csv(file_path, index=False)
+
         print(f"Data exported to {file_path}")
