@@ -14,7 +14,8 @@ from first_patrol_data import frame_layout_for_first_patrol_data, load_options_f
 chart_titles = [
     "First Patrol Data",
     "Distinct Details",
-    "Changing State Details"
+    "Changing State Details",
+    "Firings Details"
 ]
 
 # Miasta
@@ -148,7 +149,10 @@ def load_preset_options(chart_topic):
                 ChangingStateDetailsVisualizer(frame1, frame2, selected_cities_list, data)
                 # load_options_for_state_details(frame1, selected_cities_list, data)
                 # frame_layout_for_state_details(frame2)
-
+            case "Firings Details":
+                Firings_Details_Template(frame1, frame2, selected_cities_list, data)
+                # load_options_for_state_details(frame1, selected_cities_list, data)
+                # frame_layout_for_state_details(frame2)
 
 ###########################
 ########## STYLE ##########
