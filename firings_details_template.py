@@ -19,8 +19,8 @@ type_patrols = ["All", "Generally Required Patrols", "Solving Patrols", "Reachin
 # Settings
 set_district_name = "Tempelhof-Schöneberg"    # All | Posługuje się: tablicą: all_district_name wartość przykładowa:  np. Tempelhof-Schöneberg
 set_firing_id = "All"                         # All | Posługuje się: tablicą: all_firing_id wartość przykładowa:  np. 82ecdf15-a640-4bc8-a504-e30761c4b716
-mode = "Values"                               # Values | Mean | SafetyLevel | TotalDistance
-SetPatrolDisplay = type_patrols[2]            # All | Generally Required Patrols | Solving Patrols | Reaching Patrols | Called Patrols
+mode = "Values"                                 # Values | Mean | SafetyLevel
+SetPatrolDisplay = type_patrols[1]            # All | Generally Required Patrols | Solving Patrols | Reaching Patrols | Called Patrols
 
 # Ma reprezentować suwak który się przesuwa na opcje: SetDistrictName | SetFiring
 # Teraz jest ustawiony na tylko wyświetlanie po nazwach co blokuje wyszukiwanie po firing_id
@@ -70,46 +70,35 @@ if mode == "Values":
 elif mode == "SafetyLevel":
     safety_levels = ["Safe", "NotSafe", "RatherSafe"]
 
-    # Create a pie chart for each safety level
+    # Create a new DataFrame for each safety level
+    safety_level_data = {}
     for safety_level in safety_levels:
-        safety_filtered_df = filtered_df[filtered_df["districtSafetyLevel"] == safety_level]
+        safety_level_data[safety_level] = filtered_df[filtered_df["districtSafetyLevel"] == safety_level]
 
-        # Drop rows with NaN values in relevant columns
-        cols_to_check = ["generallyRequiredPatrols", "solvingPatrols", "reachingPatrols(including 'called')", "calledPatrols"]
-        safety_filtered_df = safety_filtered_df.dropna(subset=cols_to_check)
+    # Calculate the sum of totalDistanceOfCalledPatrols for each safety level
+    total_distance_sum = {safety_level: data["totalDistanceOfCalledPatrols"].sum() for safety_level, data in
+                          safety_level_data.items()}
 
-        # Check if the safety_filtered_df is empty
-        if safety_filtered_df.empty:
-            print(f"No data available for {safety_level} Districts - {set_district_name} - {set_firing_id}")
-            continue  # Skip further processing for this safety level
-
-        # Calculate the sum of values for each patrol type
-        generally_required_sum = safety_filtered_df["generallyRequiredPatrols"].sum()
-        solving_sum = safety_filtered_df["solvingPatrols"].sum()
-        reaching_sum = safety_filtered_df["reachingPatrols(including 'called')"].sum()
-        called_sum = safety_filtered_df["calledPatrols"].sum()
-
-        # Create labels and values for the pie chart
-        labels = ["Generally Required Patrols", "Solving Patrols", "Reaching Patrols", "Called Patrols"]
-        values = [generally_required_sum, solving_sum, reaching_sum, called_sum]
-
-        # Plot the pie chart with values formatted on each slice
-        plt.pie(values, labels=[f"{label}\n{v}" for label, v in zip(labels, values)], startangle=90)
-
-        plt.title(f"Patrols Distribution for {safety_level} Districts - {set_district_name} - {set_firing_id}")
-        plt.show()
-
-elif mode == "TotalDistance":
-    plt.plot(filtered_df["simulationTime[h]"], filtered_df["totalDistanceOfCalledPatrols"])
-    plt.xlabel("Simulation Time [h]")
+    # Create a bar plot
+    plt.bar(total_distance_sum.keys(), total_distance_sum.values())
+    plt.xlabel("Safety Level")
     plt.ylabel("Total Distance of Called Patrols [km]")
-    plt.title("Total Distance of Called Patrols Over Time - "+ set_district_name+ " - "+set_firing_id)
+    plt.title("Total Distance of Called Patrols by Safety Level - " + set_district_name + " - " + set_firing_id)
     plt.show()
 
 elif mode == "Mean":
     columns_to_plot = ["generallyRequiredPatrols", "solvingPatrols", "reachingPatrols(including 'called')", "calledPatrols"]
-    mean_data = filtered_df[columns_to_plot].mean()
-    ax = mean_data.plot(kind='barh',title="Średnia wartość patroli - "+ set_district_name+ " - "+set_firing_id)
+    # Apply filters for district and firing if not set to "All"
+    mean_data = filtered_df[columns_to_plot]
+
+    if set_district_name != "All":
+        mean_data = mean_data[filtered_df["districtName"] == set_district_name]
+    if set_firing_id != "All":
+        mean_data = mean_data[filtered_df["firingID"] == set_firing_id]
+
+    mean_data = mean_data.mean()
+
+    ax = mean_data.plot(kind='barh', title="Mean Patrols Value - "+ set_district_name+ " - "+set_firing_id)
     for bar in ax.patches:
         plt.text(bar.get_width(), bar.get_y() + bar.get_height() / 2, f'{bar.get_width():.2f}', ha='left', va='center')
     plt.show()
