@@ -500,5 +500,8 @@ def export_data_to_csv(data, city, state, patrol_identifier):
         if patrol_identifier != 'All':
             filtered_data = filtered_data[filtered_data['patrolID'] == patrol_dropdown.get()]
 
+        # Rename columns
+        filtered_data = filtered_data.rename(columns={'previousPatrolState': 'currentPatrolState', 'currentPatrolState': 'nextPatrolState'})
+
         filtered_data.to_csv(file_path, index=False)
         print(f"Data exported to {file_path}")
