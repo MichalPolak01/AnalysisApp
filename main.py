@@ -5,6 +5,7 @@ from changing_state_details import frame_layout_for_state_details, load_options_
 from changing_state_details_class import ChangingStateDetailsVisualizer
 from distinct_details import frame_layout_for_distinct_details, load_options_for_distinct_details
 from distinct_details_class import DistinctDetailsVisualizer
+from firings_details_class import FiringDetailsVisualizer
 from first_patrol_data_class import PatrolDataVisualizer
 from load_data import load_data
 from first_patrol_data import frame_layout_for_first_patrol_data, load_options_for_first_patrol_data
@@ -108,8 +109,6 @@ button.grid(row=3, column=0, padx=15, pady=5, sticky="nsew")
 ###########################
 ######### CONTENT #########
 ###########################
-
-
 # Funkcja ładująca dane
 def load_preset_options(chart_topic):
     if (len(selected_cities) == 0):
@@ -150,7 +149,7 @@ def load_preset_options(chart_topic):
                 # load_options_for_state_details(frame1, selected_cities_list, data)
                 # frame_layout_for_state_details(frame2)
             case "Firings Details":
-                Firings_Details_Template(frame1, frame2, selected_cities_list, data)
+                FiringDetailsVisualizer(frame1, frame2, selected_cities_list, data)
                 # load_options_for_state_details(frame1, selected_cities_list, data)
                 # frame_layout_for_state_details(frame2)
 

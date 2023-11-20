@@ -13,13 +13,15 @@ district_name_numbers = list(all_district_name)
 all_firing_id = df['firingID'].unique()
 firing_id_numbers = list(all_firing_id)
 
+print(firing_id_numbers)
+
 # Tablica do wyboru typu patrolu
 type_patrols = ["All", "Generally Required Patrols", "Solving Patrols", "Reaching Patrols", "Called Patrols"]
 
 # Settings
 set_district_name = "Tempelhof-Schöneberg"    # All | Posługuje się: tablicą: all_district_name wartość przykładowa:  np. Tempelhof-Schöneberg
-set_firing_id = "All"                         # All | Posługuje się: tablicą: all_firing_id wartość przykładowa:  np. 82ecdf15-a640-4bc8-a504-e30761c4b716
-mode = "Values"                                 # Values | Mean | SafetyLevel
+set_firing_id = "Generally Required Patrols"                         # All | Posługuje się: tablicą: all_firing_id wartość przykładowa:  np. 82ecdf15-a640-4bc8-a504-e30761c4b716
+mode = "SafetyLevel"                                 # Values | Mean | SafetyLevel
 SetPatrolDisplay = type_patrols[1]            # All | Generally Required Patrols | Solving Patrols | Reaching Patrols | Called Patrols
 
 # Ma reprezentować suwak który się przesuwa na opcje: SetDistrictName | SetFiring
