@@ -1,3 +1,4 @@
+import tkinter
 import tkinter as tk
 from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
@@ -75,6 +76,10 @@ def load_options_for_state_details(frame, selected_cities, data):
 
     button = ttk.Button(options_frame, text="Load data", command=lambda: show_chart(data))
     button.grid(row=5, column=0, padx=15, pady=5, sticky="nsew")
+
+    button_export = ttk.Button(options_frame, text="Export Data",
+                               command=lambda: export_data_to_csv(data, city_var.get(), state_dropdown.get(), patrol_var))
+    button_export.grid(row=6, column=0, padx=15, pady=5, sticky="nsew")
 
 def frame_layout_for_state_details(frame2):
     # Utwórz frame_chart
@@ -189,7 +194,8 @@ def draw_chart(data, frame, city):
     ax.spines['right'].set_color('white')
 
     # Histogram dla poprzednich stanów
-    sns.countplot(y='currentPatrolState', data=data, palette='viridis', orient='h')
+    sns.countplot(y='currentPatrolState', data=data, hue='currentPatrolState', palette='viridis', orient='h',
+                  legend=False)
 
     plt.subplots_adjust(left=0.15, right=0.95)  # Dostosuj według potrzeb
 
@@ -462,3 +468,37 @@ def analyze(data, frame, groupby="previousPatrolState", count_by="currentPatrolS
 # # Wyświetl wykres
 # plt.tight_layout()
 # plt.show()
+
+def export_data_to_csv(data, city, state, patrol_identifier):
+    if not city:
+        city = "All"
+    if not state:
+        state = "All"
+    if not patrol_identifier:
+        patrol_identifier = "All"
+
+    file_name = f"Patrol_State_Simulation_City-{city}_State-{state}_Patrol-{patrol_identifier}"
+
+    file_path = tkinter.filedialog.asksaveasfilename(
+        defaultextension=".csv",
+        filetypes=[("CSV files", "*.csv")],
+        initialfile=f"{file_name}.csv"
+    )
+
+    if file_path:
+        filtered_data = data
+
+        # Filter by City
+        if city != 'All':
+            filtered_data = filtered_data[filtered_data['City'].str.upper() == city.upper()]
+
+        # Filter by State
+        if state != 'All':
+            filtered_data = filtered_data[filtered_data['previousPatrolState'].str.upper() == state.upper()]
+
+        # Filter by Patrol
+        if patrol_identifier != 'All':
+            filtered_data = filtered_data[filtered_data['patrolID'] == patrol_dropdown.get()]
+
+        filtered_data.to_csv(file_path, index=False)
+        print(f"Data exported to {file_path}")
