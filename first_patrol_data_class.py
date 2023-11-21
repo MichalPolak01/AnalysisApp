@@ -151,6 +151,7 @@ class PatrolDataVisualizer():
         button = ttk.Button(self.export_frame, text="Export data", command=lambda: export_to_csv(data_to_analyse, f"First Patrol Data - {self.city_var.get()} - {self.state_var.get()}"))
         button.grid(row=0, column=0, padx=15, pady=5, sticky="nsew")
 
+
     # Rysowanie wykresu
     def draw_chart(self, grouped_data):
         # Wyczyszczenie frame

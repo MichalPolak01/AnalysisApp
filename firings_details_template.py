@@ -19,7 +19,7 @@ print(firing_id_numbers)
 type_patrols = ["All", "Generally Required Patrols", "Solving Patrols", "Reaching Patrols", "Called Patrols"]
 
 # Settings
-set_district_name = "Tempelhof-Schöneberg"    # All | Posługuje się: tablicą: all_district_name wartość przykładowa:  np. Tempelhof-Schöneberg
+set_district_name = "All"    # All | Posługuje się: tablicą: all_district_name wartość przykładowa:  np. Tempelhof-Schöneberg
 set_firing_id = "Generally Required Patrols"                         # All | Posługuje się: tablicą: all_firing_id wartość przykładowa:  np. 82ecdf15-a640-4bc8-a504-e30761c4b716
 mode = "SafetyLevel"                                 # Values | Mean | SafetyLevel
 SetPatrolDisplay = type_patrols[1]            # All | Generally Required Patrols | Solving Patrols | Reaching Patrols | Called Patrols

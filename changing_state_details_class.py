@@ -237,13 +237,19 @@ class ChangingStateDetailsVisualizer():
         ax.spines['left'].set_color('white')
         ax.spines['right'].set_color('white')
 
+        if self.direction == 'currentPatrolState':
+            state = 'previousPatrolState'
+        else:
+            state = 'currentPatrolState'
+
+
         # Sporządzenie histogramu dla poprzednich stanów
-        sns.countplot(y='currentPatrolState', data=self.data, hue='currentPatrolState', palette='viridis', orient='h', legend=False)
+        sns.countplot(y=state, data=grouped_data, hue=state, palette='viridis', orient='h', legend=False)
 
         plt.subplots_adjust(left=0.2, right=0.95)
 
         # Obliczenie średniej liczby przejść do innych stanów
-        mean_previous_state_counts = self.data['currentPatrolState'].value_counts().mean()
+        mean_previous_state_counts = grouped_data[state].value_counts().mean()
 
         # Wyświetlenie średniej liczby przejść do innych stanów
         if self.average_var.get():

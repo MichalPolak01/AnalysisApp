@@ -30,8 +30,8 @@ class FiringDetailsVisualizer():
         self.presentation_mode = 'chart'
 
         self.modes = [
-            "Values",
             "Mean",
+            "Values",
             "SafetyLevel"
         ]
 
@@ -117,18 +117,21 @@ class FiringDetailsVisualizer():
         mode_dropdown.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
         self.mode_dropdown_extends()
 
-        set_frame = ttk.LabelFrame(self.options_frame, text="Set firing/district")
-        set_frame.grid(row=3, column=0, padx=20, pady=10, sticky="nsew")
-
-        mode_switch = ttk.Checkbutton(set_frame, text="District | Firing", style="Switch", command=lambda: self.toggle_mode(mode_switch, set_frame))
-        mode_switch.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
-        self.toggle_mode(mode_switch, set_frame)
+        self.set_firing_id_or_district()
 
         display_frame = ttk.LabelFrame(self.options_frame, text="Display")
         display_frame.grid(row=4, column=0, padx=20, pady=10, sticky="nsew")
 
         mode_switch_presentation = ttk.Checkbutton(display_frame, text="Chart | Table", style="Switch", command=lambda: self.toggle_mode_presentation(mode_switch_presentation))
         mode_switch_presentation.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
+
+    def set_firing_id_or_district(self):
+        set_frame = ttk.LabelFrame(self.options_frame, text="Set firing|district")
+        set_frame.grid(row=3, column=0, padx=20, pady=10, sticky="nsew")
+
+        mode_switch = ttk.Checkbutton(set_frame, text="District | Firing", style="Switch", command=lambda: self.toggle_mode(mode_switch, set_frame))
+        mode_switch.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
+        self.toggle_mode(mode_switch, set_frame)
 
 
     def on_combobox_selected(self, event):        
@@ -139,8 +142,21 @@ class FiringDetailsVisualizer():
                 child.destroy()
 
         if self.mode_dropdown_var.get() == "Values":
+            self.set_firing_id_or_district()
             self.mode_dropdown_extends()
+        elif self.mode_dropdown_var.get() == "SafetyLevel":
+            children = self.options_frame.winfo_children()
+            for child in children:
+                info = child.grid_info()
+                if info['row'] == 3:
+                    child.destroy()
+
+            self.firing_id_var.set('All')
+            self.distinct_var.set('All')
+            
+            self.prepare_data()
         else:
+            self.set_firing_id_or_district()
             self.prepare_data()
         
 
@@ -222,6 +238,9 @@ class FiringDetailsVisualizer():
                     filtered_df = filtered_df[(filtered_df["firingID"] == self.firing_id_var.get()) & (self.data['City'] == self.city_var.get())]
                 if self.distinct_var.get() != "All":
                     filtered_df = filtered_df[(filtered_df["districtName"] == self.distinct_var.get()) & (self.data['City'] == self.city_var.get())]
+                if self.firing_id_var.get() == 'All' and self.distinct_var.get() == "All":
+                    filtered_df = filtered_df[(self.data['City'] == self.city_var.get())]
+
 
         filtered_df["simulationTime[h]"] = filtered_df["simulationTime[s]"] / 3600
         filtered_df["totalDistanceOfCalledPatrols"] = filtered_df["totalDistanceOfCalledPatrols"].replace({',': '.'}, regex=True).astype(float) / 1000
@@ -230,6 +249,36 @@ class FiringDetailsVisualizer():
             self.draw_chart(filtered_df)
         elif self.presentation_mode == 'table':
             self.create_table(filtered_df)
+
+        if self.mode_dropdown_var.get() == "SafetyLevel":
+            df = self.data.copy()
+
+            # Przekształcenie kolumny totalDistanceOfCalledPatrols na format liczbowy
+            df["totalDistanceOfCalledPatrols"] = df["totalDistanceOfCalledPatrols"].str.replace(",", ".").astype(float)
+
+            # Wybór interesujących kolumn
+            selected_columns = [
+                "districtSafetyLevel",
+                "totalDistanceOfCalledPatrols",
+                "solvingPatrols",
+                "reachingPatrols(including 'called')"
+            ]
+
+            # Zgrupowanie danych według districtSafetyLevel i obliczenie sum
+            grouped_data = df[selected_columns].groupby("districtSafetyLevel").sum()
+
+            # Dodanie kolumny z udziałem procentowym totalDistanceOfCalledPatrols
+            grouped_data["percentageOfTotalDistance"] = grouped_data["totalDistanceOfCalledPatrols"] / grouped_data[
+                "totalDistanceOfCalledPatrols"].sum() * 100
+
+            # Dodanie kolumny z ilością kilometrów na patrol
+            grouped_data["kilometersPerPatrol"] = grouped_data["totalDistanceOfCalledPatrols"] / (
+                    grouped_data["solvingPatrols"] + grouped_data["reachingPatrols(including 'called')"]
+            )
+
+            print(grouped_data)
+
+
             
         # self.analyse(data_to_analyse, groupby)
 
@@ -272,6 +321,7 @@ class FiringDetailsVisualizer():
         ax.spines['left'].set_color('white')
         ax.spines['right'].set_color('white')
 
+        # Sporządzenie wykresów
         if self.mode_dropdown_var.get() == "Values":
             if self.type_of_patrol_var.get() == "All":
                 plt.plot(filtered_df["simulationTime[h]"], filtered_df["generallyRequiredPatrols"], label="Generally Required Patrols - "+ self.distinct_var.get()+ " - "+self.firing_id_var.get())
@@ -325,29 +375,6 @@ class FiringDetailsVisualizer():
             ax = mean_data.plot(kind='barh', title="Mean Patrols Value - "+ self.distinct_var.get()+ " - "+self.firing_id_var.get())
             for bar in ax.patches:
                 plt.text(bar.get_width(), bar.get_y() + bar.get_height() / 2, f'{bar.get_width():.2f}', ha='left', va='center')
-
-
-        # # Sporządzenie wykresów
-        # for state, group in grouped_data:
-        #     plt.plot(group['simulationTime[s]'] / 3600, group['timeInState[s]'] / 60, label=state, linestyle='-')
-
-        # Ustawienie przyrostówn na osiach
-        # ax = plt.gca()
-        # ax.xaxis.set_major_locator(MultipleLocator(1))
-        # ax.yaxis.set_major_locator(MultipleLocator(5))
-        
-        # Dodanie legendy
-        # plt.legend()
-
-        # # Dodanie etykiet oraz tytułu wykresu
-        # plt.xlabel('Simulation Time [h]')
-        # plt.ylabel('Time in State [min]')
-
-        # if self.city_var.get() != '':
-        #     title = self.city_var.get()
-        # elif self.state_var.get() != '':
-        #     title = self.state_var.get()
-        # plt.title(f'Patrol State Simulation for {title}')
 
         container_frame = ttk.Frame(self.frame_chart)
         container_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)

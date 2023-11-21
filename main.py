@@ -127,31 +127,16 @@ def load_preset_options(chart_topic):
         data = load_data(selected_cities, chart_topic)
         selected_cities_list = list(selected_cities)
 
-
-        # if chart_topic == "First Patrol Data":
-        #     PatrolDataVisualizer(frame1, frame2, selected_cities_list, data)
-        #     # load_options_for_first_patrol_data(frame1, selected_cities_list, data)
-        #     # frame_layout_for_first_patrol_data(frame2)
-        # elif chart_topic == "Distinct Details":
-        #     DistinctDetailsVisualizer(frame1, frame2, selected_cities_list, data)
-
         match chart_topic:
             case "First Patrol Data":
                 PatrolDataVisualizer(frame1, frame2, selected_cities_list, data)
-                # load_options_for_first_patrol_data(frame1, selected_cities_list, data)
-                # frame_layout_for_first_patrol_data(frame2)
             case "Distinct Details":
                 DistinctDetailsVisualizer(frame1, frame2, selected_cities_list, data)
-                # load_options_for_distinct_details(frame1, selected_cities_list, data)
-                # frame_layout_for_distinct_details(frame2)
             case  "Changing State Details":
                 ChangingStateDetailsVisualizer(frame1, frame2, selected_cities_list, data)
-                # load_options_for_state_details(frame1, selected_cities_list, data)
-                # frame_layout_for_state_details(frame2)
             case "Firings Details":
                 FiringDetailsVisualizer(frame1, frame2, selected_cities_list, data)
-                # load_options_for_state_details(frame1, selected_cities_list, data)
-                # frame_layout_for_state_details(frame2)
+
 
 ###########################
 ########## STYLE ##########
