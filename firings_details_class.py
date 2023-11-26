@@ -245,16 +245,10 @@ class FiringDetailsVisualizer():
         filtered_df["simulationTime[h]"] = filtered_df["simulationTime[s]"] / 3600
         filtered_df["totalDistanceOfCalledPatrols"] = filtered_df["totalDistanceOfCalledPatrols"].replace({',': '.'}, regex=True).astype(float) / 1000
 
-        if self.presentation_mode == 'chart':
-            self.draw_chart(filtered_df)
-        elif self.presentation_mode == 'table':
-            self.create_table(filtered_df)
+
 
         if self.mode_dropdown_var.get() == "SafetyLevel":
-            df = self.data.copy()
-
-            # Przekształcenie kolumny totalDistanceOfCalledPatrols na format liczbowy
-            df["totalDistanceOfCalledPatrols"] = df["totalDistanceOfCalledPatrols"].str.replace(",", ".").astype(float)
+            df = filtered_df.copy()
 
             # Wybór interesujących kolumn
             selected_columns = [
@@ -276,7 +270,33 @@ class FiringDetailsVisualizer():
                     grouped_data["solvingPatrols"] + grouped_data["reachingPatrols(including 'called')"]
             )
 
-            print(grouped_data)
+            grouped_data = grouped_data.reset_index()  # Reset index here
+
+            # print(grouped_data)
+            # self.analyse(grouped_data)        
+            if self.presentation_mode == 'chart':
+                self.draw_chart(filtered_df)
+                self.analyse(grouped_data)  
+            elif self.presentation_mode == 'table':
+                self.create_table(filtered_df)
+
+        elif self.mode_dropdown_var.get() == "Mean":
+
+
+            if self.presentation_mode == 'chart':
+                self.draw_chart(filtered_df)
+                # self.analyse(grouped_data)  
+            elif self.presentation_mode == 'table':
+                self.create_table(grouped_data)
+
+        elif self.mode_dropdown_var.get() == "Values":
+
+
+            if self.presentation_mode == 'chart':
+                self.draw_chart(filtered_df)
+                # self.analyse(grouped_data)  
+            elif self.presentation_mode == 'table':
+                self.create_table(filtered_df)
 
 
             
@@ -370,6 +390,7 @@ class FiringDetailsVisualizer():
             if self.firing_id_var.get() != "All":
                 mean_data = mean_data[filtered_df["firingID"] == self.firing_id_var.get()]
 
+
             mean_data = mean_data.mean()
 
             ax = mean_data.plot(kind='barh', title="Mean Patrols Value - "+ self.distinct_var.get()+ " - "+self.firing_id_var.get())
@@ -400,46 +421,86 @@ class FiringDetailsVisualizer():
 
 
     # Analiza danych
-    def analyse(self, data, groupby):        
+    def analyse(self, data):        
         # Wyczyszczenie frame
         for widget in self.frame_analise.winfo_children():
             widget.destroy()
 
-        # Utworzenie pola tekstowego
-        tree = ttk.Treeview(self.frame_analise, columns=["group", "sum", "mean", "min", "max"])
-        tree["show"] = "headings"
+        # Utwórzenie drzewa do wyświetlania danych
+        tree = ttk.Treeview(self.frame_analise, columns=["level", "totaldistance", "solvingpatrols", "reachingpatrols", "percentage", "kmperpatrol"], show="headings")
 
-        # Dodanie kolumn
-        tree.heading("group", text=groupby)
-        tree.heading("sum", text="Sum time")
-        tree.heading("mean", text="Mean time")
-        tree.heading("min", text="Min time")
-        tree.heading("max", text="Max time")
+        # Dodanie kolumny
+        tree.heading("level", text="Level")
+        tree.heading("totaldistance", text="Total")
+        tree.heading("solvingpatrols", text="Solving patrols")
+        tree.heading("reachingpatrols", text="Reaching patrols")
+        tree.heading("percentage", text="Percentage")
+        tree.heading("kmperpatrol", text="Km per patrol")
 
-        tree.column("#1", anchor="w")
+        tree.column("#1", anchor="center")
         tree.column("#2", anchor="center")
         tree.column("#3", anchor="center")
         tree.column("#4", anchor="center")
         tree.column("#5", anchor="center")
+        tree.column("#6", anchor="center")
 
-        for name, group in data.groupby(groupby)["timeInState[s]"]:
-            total_seconds = group.sum()
-            
-            minutes = total_seconds // 60
-            seconds = total_seconds % 60
-
-            mean_seconds = group.mean() % 60
-            min_seconds = group.min() % 60
-            max_seconds = group.max() % 60
-
-            sum_val = f"{int(minutes)} min {int(seconds)} s"
-            mean_val = f"{int(group.mean() // 60)} min {int(mean_seconds)} s"
-            min_val = f"{int(group.min() // 60)} min {int(min_seconds)} s"
-            max_val = f"{int(group.max() // 60)} min {int(max_seconds)} s"
-
-            tree.insert("", "end", values=(name, sum_val, mean_val, min_val, max_val), tags=(name,))
+        for index, row in data.iterrows():
+            tree.insert("", "end", values=(row['districtSafetyLevel'], f"{row['totalDistanceOfCalledPatrols']:.2f}km", row["solvingPatrols"],
+                                            row["reachingPatrols(including 'called')"],  f"{row['percentageOfTotalDistance']:.2f}%", f"{row['kilometersPerPatrol']:.2f}"))
 
         tree.pack(side="left", fill="both", expand=True)
+
+        ###########################
+        ########## WYKRES #########
+        ###########################
+        # Tworzenie figury i osi
+        fig, ax_pie = plt.subplots(figsize=(5, 4), subplot_kw=dict(aspect="equal"))
+        fig.patch.set_facecolor('#313131')
+        fig.patch.set_alpha(1.0)
+
+        # Rysowanie wykresu kołowego
+        wedges, texts, autotexts = ax_pie.pie(data['totalDistanceOfCalledPatrols'], labels=data['districtSafetyLevel'].unique(), autopct='%1.1f%%', startangle=140)
+
+        # Dodanie legendy
+        # legend = ax_pie.legend(wedges, data['districtSafetyLevel'].unique(), title="Legend:", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
+        legend = ax_pie.legend(wedges, data['districtSafetyLevel'].unique(), title="Legend:", loc="upper center", bbox_to_anchor=(0.5, -0.1))
+        legend.get_title().set_color('white')
+        legend.get_title().set_size(10)
+        for text_obj in legend.get_texts():
+            text_obj.set_color('white')
+            text_obj.set_size(9)
+
+        # Ukrycie etykiet
+        for text in texts:
+            text.set_visible(False)
+
+        # Zmiana koloru tła legendy
+        legend.set_frame_on(True)
+        legend.get_frame().set_facecolor('#595959')
+        legend.get_frame().set_alpha(1.0)
+
+        # Dodanie tytułu
+        ax_pie.set_title('Percentage of kilometers')
+        ax_pie.title.set_color('#217346')
+        ax_pie.title.set_size(9)
+
+        # Zmiana koloru tekstu na biały
+        for text_obj in ax_pie.texts + autotexts:
+            text_obj.set_color('white')
+
+        plt.setp(autotexts, weight="bold", size=8)
+
+        fig.subplots_adjust(left=0.0, right=1.0, bottom=0.3, top=0.90)
+
+        # Osadzenie wykresu w interfejsie tkinter
+        canvas = FigureCanvasTkAgg(fig, master=self.frame_analise)
+        canvas.draw()
+
+        # Zamyknięcie wykresu po użyciu
+        plt.close(fig)
+
+        # Umieszczenie canvas w grid w frame
+        canvas.get_tk_widget().pack(side=tk.LEFT, padx=10, pady=10)
 
 
     # Widok tabeli
