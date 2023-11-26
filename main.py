@@ -37,8 +37,8 @@ def show_alert(text):
 ######### WINDOW ##########
 ###########################
 root = tk.Tk()
-root.geometry("1350x760") # 16:9
-# root.state('zoomed') # Dopasuj do ekranu
+# root.geometry("1350x760") # 16:9
+root.state('zoomed') # Dopasuj do ekranu
 
 # Dodanie stylu
 style = ttk.Style(root)
