@@ -315,7 +315,7 @@ class FiringDetailsVisualizer():
                 self.create_table(filtered_df)
 
         # Utworzenie buttona do exportu danych
-        button = ttk.Button(self.export_frame, text="Export data", command=lambda: export_to_csv(filtered_df, f"First Patrol Data - {self.city_var.get()} - {self.state_var.get()}"))
+        button = ttk.Button(self.export_frame, text="Export data", command=lambda: export_to_csv(filtered_df, f"Firings Details - {self.city_var.get()} - {self.state_var.get()}"))
         button.grid(row=0, column=0, padx=15, pady=5, sticky="nsew")
 
 
@@ -422,7 +422,7 @@ class FiringDetailsVisualizer():
         canvas.draw()
 
         # Utworzenie buttona do exportu wykresu
-        button = ttk.Button(self.export_frame, text="Export chart", command=lambda: export_plot_to_image(fig, f"First Patrol Data - {self.city_var.get()} - {self.state_var.get()}"))
+        button = ttk.Button(self.export_frame, text="Export chart", command=lambda: export_plot_to_image(fig, f"Firings Details - {self.city_var.get()} - {self.state_var.get()}"))
         button.grid(row=1, column=0, padx=15, pady=5, sticky="nsew")
 
         # Zamyknięcie wykresu po użyciu
@@ -637,9 +637,16 @@ class FiringDetailsVisualizer():
             tree.insert("", tk.END, values=list(row))
 
         # Dodanie paska przewijania
-        scrollbar = ttk.Scrollbar(self.frame_chart, orient="vertical", command=tree.yview)
-        tree.configure(yscrollcommand=scrollbar.set)
+        scrollbar_y = ttk.Scrollbar(self.frame_chart, orient="vertical", command=tree.yview)
+        scrollbar_x = ttk.Scrollbar(self.frame_chart, orient="horizontal", command=tree.xview)
+        tree.configure(yscrollcommand=scrollbar_y.set, xscrollcommand=scrollbar_x.set)
+
+        # Przypisanie polecenia przewijania do pasków
+        scrollbar_y.config(command=tree.yview)
+        scrollbar_x.config(command=tree.xview)
+
+        scrollbar_y.pack(side="right", fill="y")
+        scrollbar_x.pack(side="bottom", fill="x")
 
         # Pakowanie Treeview i paska przewijania
         tree.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")

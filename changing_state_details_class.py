@@ -198,8 +198,8 @@ class ChangingStateDetailsVisualizer():
         self.analyse(grouped_data)
 
         # Utworzenie buttona do exportu danych
-        button = ttk.Button(self.export_frame, text="Export data", command=lambda: export_to_csv(grouped_data, f"First Patrol Data - {self.city_var.get()} - {self.state_var.get()} - {self.direction}"))
-        button.grid(row=0, column=0, padx=15, pady=5, sticky="nsew")
+        button = ttk.Button(self.export_frame, text="Export data", width=16, command=lambda: export_to_csv(grouped_data, f"Changing State Details - {self.city_var.get()} - {self.state_var.get()} - {self.direction}"))
+        button.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
 
     # Rysowanie wykresu
     def draw_chart(self, grouped_data):
@@ -273,8 +273,8 @@ class ChangingStateDetailsVisualizer():
         canvas.draw()
 
         # Utworzenie buttona do exportu wykresu
-        button = ttk.Button(self.export_frame, text="Export chart", command=lambda: export_plot_to_image(fig, f"First Patrol Data - {self.city_var.get()} - {self.state_var.get()} - {self.direction}"))
-        button.grid(row=1, column=0, padx=15, pady=5, sticky="nsew")
+        button = ttk.Button(self.export_frame, text="Export chart", width=16, command=lambda: export_plot_to_image(fig, f"Changing State Details - {self.city_var.get()} - {self.state_var.get()} - {self.direction}"))
+        button.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
 
         # Zamyknięcie wykresu po użyciu
         plt.close(fig)
@@ -401,9 +401,16 @@ class ChangingStateDetailsVisualizer():
             tree.insert("", tk.END, values=list(row))
 
         # Dodanie paska przewijania
-        scrollbar = ttk.Scrollbar(self.frame_chart, orient="vertical", command=tree.yview)
-        tree.configure(yscrollcommand=scrollbar.set)
+        scrollbar_y = ttk.Scrollbar(self.frame_chart, orient="vertical", command=tree.yview)
+        scrollbar_x = ttk.Scrollbar(self.frame_chart, orient="horizontal", command=tree.xview)
+        tree.configure(yscrollcommand=scrollbar_y.set, xscrollcommand=scrollbar_x.set)
+
+        # Przypisanie polecenia przewijania do pasków
+        scrollbar_y.config(command=tree.yview)
+        scrollbar_x.config(command=tree.xview)
+
+        scrollbar_y.pack(side="right", fill="y")
+        scrollbar_x.pack(side="bottom", fill="x")
 
         # Pakowanie Treeview i paska przewijania
         tree.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")

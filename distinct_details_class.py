@@ -381,12 +381,12 @@ class DistinctDetailsVisualizer:
         scrollbar_x = ttk.Scrollbar(self.frame_chart, orient="horizontal", command=tree.xview)
         tree.configure(yscrollcommand=scrollbar_y.set, xscrollcommand=scrollbar_x.set)
 
-        # Pakowanie Treeview i paska przewijania
-        tree.pack(side="left", fill="both", expand=True)
+        # Przypisanie polecenia przewijania do pasków
+        scrollbar_y.config(command=tree.yview)
+        scrollbar_x.config(command=tree.xview)
+
         scrollbar_y.pack(side="right", fill="y")
         scrollbar_x.pack(side="bottom", fill="x")
 
-
-
-
-        
+        # Pakowanie Treeview i paska przewijania
+        tree.pack(side="left", fill="both", expand=True)
