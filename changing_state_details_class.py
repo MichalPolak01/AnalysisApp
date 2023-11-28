@@ -83,38 +83,31 @@ class ChangingStateDetailsVisualizer():
         # Wyczyszczenie frame
         for widget in self.options_frame.winfo_children():
             widget.destroy()
-
+    
         set_city_frame = ttk.LabelFrame(self.options_frame, text="Set city")
         set_city_frame.grid(row=0, column=0, padx=20, pady=10, sticky="nsew")
 
-        mode_radio = ttk.Radiobutton(set_city_frame, text="All", value="All", variable=self.city_var, command=self.prepare_data)
+        mode_radio = ttk.Radiobutton(set_city_frame, text="All", value="All", variable=self.city_var, command=lambda: self.after_city_set(set_patrol_frame))
         mode_radio.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
 
         for i, city in enumerate(self.selected_cities):
-            mode_radio = ttk.Radiobutton(set_city_frame, text=city, value=city, variable=self.city_var, command=self.prepare_data)
+            mode_radio = ttk.Radiobutton(set_city_frame, text=city, value=city, variable=self.city_var, command=lambda: self.after_city_set(set_patrol_frame))
             mode_radio.grid(row=i+1, column=0, padx=5, pady=5, sticky="nsew")
         self.city_var.set("All")
-
+        
         set_state_frame = ttk.LabelFrame(self.options_frame, text="Set state")
         set_state_frame.grid(row=1, column=0, padx=20, pady=10, sticky="nsew")
 
         mode_choose_direction = ttk.Checkbutton(set_state_frame, text="Set previous | Set next", style="Switch", command=lambda: self.toggle_choose_direction(mode_choose_direction))
         mode_choose_direction.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
 
+        set_patrol_frame = ttk.LabelFrame(self.options_frame, text="Set type")
+        set_patrol_frame.grid(row=2, column=0, padx=20, pady=10, sticky="nsew")
+
         state_dropdown = ttk.Combobox(set_state_frame, values=self.states, width=28, textvariable=self.state_dropdown)
         state_dropdown.current(0)
         state_dropdown.bind("<<ComboboxSelected>>", self.prepare_data)
         state_dropdown.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
-
-        all_patrols_id = self.data['patrolID'].unique()
-        patrols_numbers = list(all_patrols_id)
-
-        set_patrol_frame = ttk.LabelFrame(self.options_frame, text="Set patrol")
-        set_patrol_frame.grid(row=2, column=0, padx=20, pady=10, sticky="nsew")
-
-        patrol_switch = ttk.Checkbutton(set_patrol_frame, text="All Patrol | One Patrol", style="Switch", command=lambda: self.toggle_patrol(patrols_numbers, set_patrol_frame, patrol_switch))
-        patrol_switch.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
-        self.toggle_patrol(patrols_numbers, set_patrol_frame, patrol_switch)
 
         average_state_frame = ttk.LabelFrame(self.options_frame, text="Draw avarage line")
         average_state_frame.grid(row=3, column=0, padx=20, pady=10, sticky="nsew")
@@ -128,6 +121,30 @@ class ChangingStateDetailsVisualizer():
         mode_switch_presentation = ttk.Checkbutton(display_frame, text="Chart | Table", style="Switch", command=lambda: self.toggle_mode_presentation(mode_switch_presentation))
         mode_switch_presentation.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
 
+        self.after_city_set(set_patrol_frame)
+    
+
+    # Funkcja po wybraniu miasta
+    def after_city_set(self, set_patrol_frame):
+        if self.city_var.get() == 'All':
+            all_patrols_id = self.data['patrolID'].unique()
+        else:
+            data = self.data[self.data['City'] == self.city_var.get()]
+            all_patrols_id = data['patrolID'].unique()
+        
+        patrols_numbers = list(all_patrols_id)
+
+        patrol_switch = ttk.Checkbutton(set_patrol_frame, text="All Patrol | One Patrol", style="Switch", command=lambda: self.toggle_patrol(patrols_numbers, set_patrol_frame, patrol_switch))
+        patrol_switch.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
+        
+        children = set_patrol_frame.winfo_children()
+        for child in children:
+            info = child.grid_info()
+            if info['row'] == 1:
+                child.destroy()
+        
+        self.toggle_patrol(patrols_numbers, set_patrol_frame, patrol_switch)
+
         
     # Obsługa Switch'a
     def toggle_patrol(self, all_patrols_id, frame, mode_switch):
@@ -140,7 +157,7 @@ class ChangingStateDetailsVisualizer():
 
         if mode_switch.instate(["selected"]):
             self.patrol_var = "Selected"
-            patrol_dropdown = ttk.Combobox(frame, values=all_patrols_id, width=25, textvariable=self.patrol_dropdown)
+            patrol_dropdown = ttk.Combobox(frame, values=all_patrols_id, width=28, textvariable=self.patrol_dropdown)
             patrol_dropdown.current(0)
             patrol_dropdown.bind("<<ComboboxSelected>>", self.prepare_data)
             patrol_dropdown.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
@@ -257,11 +274,23 @@ class ChangingStateDetailsVisualizer():
                         label='Average Transition Count')
             plt.legend()
 
+        if self.city_var.get() != 'All':
+            city = (f'for {self.city_var.get()}')
+        else:
+            city = ""
+
+        if  self.patrol_var == "Selected" and self.city_var.get() != 'All':
+            patrolId = (f'and patrol id: {self.patrol_dropdown.get()}')
+        elif self.patrol_var == "Selected" and self.city_var.get() == 'All':
+            patrolId = (f'for patrol id: {self.patrol_dropdown.get()}')
+        else:
+            patrolId = ""
+
         # Dodaj etykiety dla osi x i y oraz tytuł wykresu
         if self.direction == 'currentPatrolState':
-            ax.set_title(f'States before {self.state_dropdown.get()}')
+            ax.set_title(f'States before {self.state_dropdown.get()} {city} {patrolId}')
         else:
-            ax.set_title(f'States after {self.state_dropdown.get()}')
+            ax.set_title(f'States after {self.state_dropdown.get()} {city} {patrolId}')
         ax.set_xlabel('Number of Occurrences')
         ax.set_ylabel('Previous State')
 

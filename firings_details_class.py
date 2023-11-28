@@ -31,8 +31,8 @@ class FiringDetailsVisualizer():
         self.presentation_mode = 'chart'
 
         self.modes = [
-            "Mean",
             "Values",
+            "Mean",
             "SafetyLevel"
         ]
 
@@ -125,16 +125,6 @@ class FiringDetailsVisualizer():
         mode_switch_presentation.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
 
 
-    # Wybór pomiędzy firing a distinct
-    def set_firing_id_or_district(self):
-        set_frame = ttk.LabelFrame(self.options_frame, text="Set firing | district")
-        set_frame.grid(row=3, column=0, padx=20, pady=10, sticky="nsew")
-
-        mode_switch = ttk.Checkbutton(set_frame, text="District | Firing", style="Switch", command=lambda: self.toggle_mode(mode_switch, set_frame))
-        mode_switch.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
-        self.toggle_mode(mode_switch, set_frame)
-
-
     # Wybór odpowiedich funkjci po wybraniu combobox
     def on_combobox_selected(self, event):        
         children = self.options_frame.winfo_children()
@@ -154,7 +144,17 @@ class FiringDetailsVisualizer():
         else:
             self.set_firing_id_or_district()
             self.prepare_data()
-        
+
+
+    # Wybór pomiędzy firing a distinct
+    def set_firing_id_or_district(self):
+        set_frame = ttk.LabelFrame(self.options_frame, text="Set firing | district")
+        set_frame.grid(row=3, column=0, padx=20, pady=10, sticky="nsew")
+
+        mode_switch = ttk.Checkbutton(set_frame, text="District | Firing", style="Switch", command=lambda: self.toggle_mode(mode_switch, set_frame))
+        mode_switch.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
+        self.toggle_mode(mode_switch, set_frame)
+
 
     # Oknow wyboru typu patrolu
     def mode_dropdown_extends(self):
@@ -174,13 +174,12 @@ class FiringDetailsVisualizer():
 
         if mode_switch.instate(["selected"]):
             self.distinct_var.set('All')
-                    
-            # Tablica posiadająca wszystkie firing_id
+
             if self.city_var.get() == 'All':
-                all_firing_id = self.data['firingID'].unique()
+                all_firing_id = self.data['firingID'].value_counts()[self.data['firingID'].value_counts() >= 2].index
             else:
                 city_data = self.data[self.data['City'] == self.city_var.get()]
-                all_firing_id = city_data['firingID'].unique()
+                all_firing_id = city_data['firingID'].value_counts()[city_data['firingID'].value_counts() >= 2].index
 
 
             firing_id_numbers = list(all_firing_id)
@@ -357,27 +356,43 @@ class FiringDetailsVisualizer():
         # Sporządzenie wykresów
         if self.mode_dropdown_var.get() == "Values":
             if self.type_of_patrol_var.get() == "All":
-                plt.plot(filtered_df["simulationTime[h]"], filtered_df["generallyRequiredPatrols"], label="Generally Required Patrols - "+ self.distinct_var.get()+ " - "+self.firing_id_var.get())
+                plt.plot(filtered_df["simulationTime[h]"], filtered_df["generallyRequiredPatrols"], label="Generally Required Patrols")
                 plt.plot(filtered_df["simulationTime[h]"], filtered_df["solvingPatrols"], label="Solving Patrols")
-                plt.plot(filtered_df["simulationTime[h]"], filtered_df["reachingPatrols(including 'called')"], label="Reaching Patrols - "+ self.distinct_var.get()+ " - "+self.firing_id_var.get())
+                plt.plot(filtered_df["simulationTime[h]"], filtered_df["reachingPatrols(including 'called')"], label="Reaching Patrols")
                 plt.plot(filtered_df["simulationTime[h]"], filtered_df["calledPatrols"], label="Called Patrols")
                 plt.legend()
                 plt.xlabel("Simulation Time [h]")
                 plt.ylabel("Patrols Value")
-                plt.title("Patrols Value Over Time")
             else:
                 if self.type_of_patrol_var.get() == "Generally Required Patrols":
-                    plt.plot(filtered_df["simulationTime[h]"], filtered_df["generallyRequiredPatrols"],label="Generally Required Patrols - "+ self.distinct_var.get()+ " - "+self.firing_id_var.get())
+                    plt.plot(filtered_df["simulationTime[h]"], filtered_df["generallyRequiredPatrols"],label="Generally Required Patrols")
                 if self.type_of_patrol_var.get() == "Solving Patrols":
                     plt.plot(filtered_df["simulationTime[h]"], filtered_df["solvingPatrols"], label="Solving Patrols")
                 if self.type_of_patrol_var.get() == "Reaching Patrols":
-                    plt.plot(filtered_df["simulationTime[h]"], filtered_df["reachingPatrols(including 'called')"],label="Reaching Patrols - "+ self.distinct_var.get()+ " - "+self.firing_id_var.get())
+                    plt.plot(filtered_df["simulationTime[h]"], filtered_df["reachingPatrols(including 'called')"],label="Reaching Patrols")
                 if self.type_of_patrol_var.get() == "Called Patrols":
                     plt.plot(filtered_df["simulationTime[h]"], filtered_df["calledPatrols"], label="Called Patrols")
                 plt.legend()
                 plt.xlabel("Simulation Time [h]")
                 plt.ylabel("Patrols Value")
-                plt.title("Patrols Value Over Time")
+
+            if self.distinct_var.get() != 'All' and self.firing_id_var.get() == 'All':
+                if self.city_var.get() != 'All':
+                    title = (f'for {self.distinct_var.get()} in {self.city_var.get()}')
+                else:
+                    title = (f'for {self.distinct_var.get()}')
+            elif self.distinct_var.get() == 'All' and self.firing_id_var.get() != 'All':
+                if self.city_var.get() != 'All':
+                    title = (f'for patrol {self.firing_id_var.get()} in {self.city_var.get()}')
+                else:
+                    title = (f'for patrol {self.firing_id_var.get()}')
+            else:
+                if self.city_var.get() != 'All':
+                    title = (f'for {self.city_var.get()}')
+                else:
+                    title = ""
+
+            plt.title("Patrols Value Over Time" + title)
         elif self.mode_dropdown_var.get() == "SafetyLevel":
             safety_level_data = {}
             for safety_level in self.safety_levels:
@@ -389,7 +404,18 @@ class FiringDetailsVisualizer():
             plt.bar(total_distance_sum.keys(), total_distance_sum.values())
             plt.xlabel("Safety Level")
             plt.ylabel("Total Distance of Called Patrols [km]")
-            plt.title("Total Distance of Called Patrols by Safety Level - " + self.distinct_var.get() + " - " + self.firing_id_var.get())
+
+            if self.distinct_var.get() != 'All' and self.firing_id_var.get() == 'All':
+                title = (f'for {self.distinct_var.get()} in {self.city_var.get()}')
+            elif self.distinct_var.get() == 'All' and self.firing_id_var.get() != 'All':
+                title = (f'for patrol {self.firing_id_var.get()} in {self.city_var.get()}')
+            else:
+                if self.city_var.get() != 'All':
+                    title = (f'for {self.city_var.get()}')
+                else:
+                    title = ""
+            
+            plt.title("Total Distance of Called Patrols by Safety Level " + title)
         elif self.mode_dropdown_var.get() == "Mean":
             mean_data = filtered_df[self.columns_to_plot]
 
@@ -410,7 +436,23 @@ class FiringDetailsVisualizer():
                 plt.text(value, index, f'{value:.2f}', ha='left', va='center', color='white')
 
             # Ustawienia tytułu i osi
-            plt.title(f"Mean Patrols Value - {self.distinct_var.get()} - {self.firing_id_var.get()}")
+            if self.distinct_var.get() != 'All' and self.firing_id_var.get() == 'All':
+                if self.city_var.get() != 'All':
+                    title = (f'for {self.distinct_var.get()} in {self.city_var.get()}')
+                else:
+                    title = (f'for {self.distinct_var.get()}')
+            elif self.distinct_var.get() == 'All' and self.firing_id_var.get() != 'All':
+                if self.city_var.get() != 'All':
+                    title = (f'for patrol {self.firing_id_var.get()} in {self.city_var.get()}')
+                else:
+                    title = (f'for patrol {self.firing_id_var.get()}')
+            else:
+                if self.city_var.get() != 'All':
+                    title = (f'for {self.city_var.get()}')
+                else:
+                    title = ""
+
+            plt.title(f"Mean Patrols Value {title}")
             plt.xlabel("Mean Value")
             plt.ylabel("Patrols Category")
 
@@ -546,7 +588,7 @@ class FiringDetailsVisualizer():
 
         for index, row in data.iterrows():
             tree.insert("", "end", values=(row['Operation'], f"{row['generallyRequiredPatrols']:.2f}", f"{row['solvingPatrols']:.2f}",
-                                            f"{row.iloc[4]:.2f}",  f"{row['calledPatrols']:.2f}", f"{row['Difference_patrols']:.2f}"))
+                                            f"{row.iloc[3]:.2f}",  f"{row['calledPatrols']:.2f}", f"{row['Difference_patrols']:.2f}"))
 
         tree.pack(side="left", fill="both", expand=True)
 
