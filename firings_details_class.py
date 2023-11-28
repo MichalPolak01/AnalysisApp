@@ -314,7 +314,7 @@ class FiringDetailsVisualizer():
                 self.create_table(filtered_df)
 
         # Utworzenie buttona do exportu danych
-        button = ttk.Button(self.export_frame, text="Export data", command=lambda: export_to_csv(filtered_df, f"Firings Details - {self.city_var.get()} - {self.state_var.get()}"))
+        button = ttk.Button(self.export_frame, text="Export data", command=lambda: export_to_csv(filtered_df, f"Firings Details - {self.city_var.get()} - {self.distinct_var.get()}"))
         button.grid(row=0, column=0, padx=15, pady=5, sticky="nsew")
 
 
@@ -464,7 +464,7 @@ class FiringDetailsVisualizer():
         canvas.draw()
 
         # Utworzenie buttona do exportu wykresu
-        button = ttk.Button(self.export_frame, text="Export chart", command=lambda: export_plot_to_image(fig, f"Firings Details - {self.city_var.get()} - {self.state_var.get()}"))
+        button = ttk.Button(self.export_frame, text="Export chart", command=lambda: export_plot_to_image(fig, f"Firings Details - {self.city_var.get()} - {self.distinct_var.get()}"))
         button.grid(row=1, column=0, padx=15, pady=5, sticky="nsew")
 
         # Zamyknięcie wykresu po użyciu
