@@ -7,6 +7,7 @@ from distinct_details import frame_layout_for_distinct_details, load_options_for
 from distinct_details_class import DistinctDetailsVisualizer
 from firings_details_class import FiringDetailsVisualizer
 from first_patrol_data_class import PatrolDataVisualizer
+from ambulance_distance_and_time_class import AmbulanceDetailsVisualizer
 from load_data import load_data
 from first_patrol_data import frame_layout_for_first_patrol_data, load_options_for_first_patrol_data
 
@@ -16,7 +17,8 @@ chart_titles = [
     "First Patrol Data",
     "Distinct Details",
     "Changing State Details",
-    "Firings Details"
+    "Firings Details",
+    "Ambulance Distance And Time To Reach Firing",
 ]
 
 # Miasta
@@ -37,8 +39,8 @@ def show_alert(text):
 ######### WINDOW ##########
 ###########################
 root = tk.Tk()
-# root.geometry("1350x760") # 16:9
-root.state('zoomed') # Dopasuj do ekranu
+root.geometry("1350x760") # 16:9
+# root.state('zoomed') # Dopasuj do ekranu
 
 # Dodanie stylu
 style = ttk.Style(root)
@@ -136,6 +138,8 @@ def load_preset_options(chart_topic):
                 ChangingStateDetailsVisualizer(frame1, frame2, selected_cities_list, data)
             case "Firings Details":
                 FiringDetailsVisualizer(frame1, frame2, selected_cities_list, data)
+            case "Ambulance Distance And Time To Reach Firing":
+                AmbulanceDetailsVisualizer(frame1, frame2, selected_cities_list, data)
 
 
 ###########################

@@ -12,7 +12,7 @@ firing_ids = list(all_firing_id)
 mode = "1"  # 1 lub 2
 
 # 1 Wykres
-districtName = "All"  # All lub Spandau
+districtName = "Spandau"  # All lub Spandau
 firingID = "All"   # All lub firing_ids[2]
 
 # 2 Wykres

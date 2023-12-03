@@ -233,10 +233,7 @@ class PatrolDataVisualizer():
 
 
     # Analiza danych
-    def analyse(self, data, groupby):        
-        
-
-
+    def analyse(self, data, groupby):
         # Wyczyszczenie frame
         for widget in self.frame_analise.winfo_children():
             widget.destroy()
