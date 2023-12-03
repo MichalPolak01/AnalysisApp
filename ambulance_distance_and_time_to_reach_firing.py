@@ -50,8 +50,14 @@ if mode == "1":
 # Wykres słupkowy (bar chart)
 elif mode == "2":
     plt.figure(figsize=(10, 6))
+    color_mapping = {
+        'NotSafe': 'red',
+        'RatherSafe': 'yellow',
+        'Safe': 'green'
+    }
+    colors = df["districtSafetyLevel"].map(color_mapping)
     district_counts = df["districtName"].value_counts()
-    district_counts.plot(kind='bar', color='skyblue')
+    district_counts.plot(kind='bar', color=colors)
     plt.xlabel("Dzielnice")
     plt.ylabel("Liczba incydentów")
     plt.title(f"Liczba incydentów w poszczególnych dzielnicach")
