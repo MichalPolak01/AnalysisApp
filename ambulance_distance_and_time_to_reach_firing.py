@@ -9,7 +9,7 @@ all_firing_id = df['firingID'].unique()
 firing_ids = list(all_firing_id)
 
 # Wybór wykresu
-mode = "2"  # 1 lub 2
+mode = "1"  # 1 lub 2
 
 # 1 Wykres
 districtName = "All"  # All lub Spandau
@@ -17,6 +17,7 @@ firingID = "All"   # All lub firing_ids[2]
 
 # 2 Wykres
 districtSafetyLevel = "All"  # NotSafe, RatherSafe, Safe
+displaySafetyLevel = True    # True lub False
 
 # Przełącznik
 if districtName != "All":
@@ -50,15 +51,29 @@ if mode == "1":
 # Wykres słupkowy (bar chart)
 elif mode == "2":
     plt.figure(figsize=(10, 6))
-    color_mapping = {
-        'NotSafe': 'red',
-        'RatherSafe': 'yellow',
-        'Safe': 'green'
-    }
-    colors = df["districtSafetyLevel"].map(color_mapping)
-    district_counts = df["districtName"].value_counts()
-    district_counts.plot(kind='bar', color=colors)
+
+    if displaySafetyLevel:
+        # Ustalanie kolorów w zależności od districtSafetyLevel
+        colors = {'NotSafe': 'red', 'RatherSafe': 'yellow', 'Safe': 'green'}
+        df['color'] = df['districtSafetyLevel'].map(colors)
+
+        district_counts = df["districtName"].value_counts()
+
+        # Ustawienie kolorów dla każdej dzielnicy
+        colors_for_bars = [df[df["districtName"] == district]["color"].iloc[0] for district in district_counts.index]
+
+        # Rysowanie wykresu słupkowego z odpowiednimi kolorami
+        plt.bar(district_counts.index, district_counts, color=colors_for_bars)
+    else:
+        # Rysowanie wykresu bez kolorów
+        district_counts = df["districtName"].value_counts()
+        plt.bar(district_counts.index, district_counts, color='skyblue')
+
     plt.xlabel("Dzielnice")
     plt.ylabel("Liczba incydentów")
     plt.title(f"Liczba incydentów w poszczególnych dzielnicach")
+
+    # Ustawienie napisów na osi X pionowo
+    plt.xticks(rotation=90)
+
     plt.show()
