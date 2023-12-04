@@ -22,7 +22,7 @@ def load_data(selected_cities, chart_title):
         
         # Odczytaj dane z wybranego pliku CSV
         try:
-            df = pd.read_csv(selected_file, encoding='ISO-8859-2')
+            df = pd.read_csv(selected_file, encoding='Windows-1250')
             print("Loaded data from: " + selected_file)
             
             # Dodaj kolumnę 'City' z nazwą miasta

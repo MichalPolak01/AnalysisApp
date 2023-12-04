@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from export_chart import export_plot_to_image
 import pandas as pd
@@ -117,7 +116,7 @@ class AmbulanceDetailsVisualizer():
         mode_switch_presentation.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
 
 
-    # # Wybór odpowiedich funkjci po wybraniu combobox
+    # Wybór odpowiedich funkjci po wybraniu combobox
     def on_combobox_selected(self, event=None):
         children = self.options_frame.winfo_children()
         for child in children:
@@ -145,6 +144,7 @@ class AmbulanceDetailsVisualizer():
         self.toggle_mode(mode_switch, set_frame)
 
 
+    # Ustawienie safety level
     def set_safety_level(self):
         set_frame = ttk.LabelFrame(self.options_frame, text="Set safety level")
         set_frame.grid(row=3, column=0, padx=20, pady=10, sticky="nsew")
@@ -188,7 +188,6 @@ class AmbulanceDetailsVisualizer():
         else:
             self.firing_id_var.set('All')
 
-            # Tablica posiadająca wszystkie district_name
             if self.city_var.get() == 'All':
                 all_district_name = self.data['districtName'].unique()
             else:
@@ -224,20 +223,71 @@ class AmbulanceDetailsVisualizer():
         # Przetwarzanie danych
         df = self.data.copy()
         
-        df["distanceOfSummonedAmbulance[m]"] = df["distanceOfSummonedAmbulance[m]"].str.replace(',', '').astype(float)
-        df["timeToReachFiring[s]"] = df["timeToReachFiring[s]"] / 60  # Przekształć sekundy na minuty
+        df["distanceOfSummonedAmbulance[m]"] = df["distanceOfSummonedAmbulance[m]"].str.replace(',', '.').astype(float)
+        df["timeToReachFiring[min]"] = df["timeToReachFiring[s]"] / 60  # Przekształć sekundy na minuty
+        df["distanceOfSummonedAmbulance[km]"] = df["distanceOfSummonedAmbulance[m]"] / 1000  # Przekształć sekundy na minuty
         
+        df_to_chart = df.copy()
+
         # Wybierz dane na podstawie kategorii dzielnic
         if self.city_var.get() != "All":
-            df = df[df["City"] == self.city_var.get()]
+            df_to_chart = df_to_chart[df_to_chart["City"] == self.city_var.get()]
         if self.firing_id_var.get() != "All":
-            df = df[df["firingID"] == self.firing_id_var.get()]
+            df_to_chart = df_to_chart[df_to_chart["firingID"] == self.firing_id_var.get()]
         if self.distinct_var.get() != "All":
-            df = df[df["districtName"] == self.distinct_var.get()]
+            df_to_chart = df_to_chart[df_to_chart["districtName"] == self.distinct_var.get()]
         if self.safety_level_var.get() != "All":
-            df = df[df["districtSafetyLevel"] == self.safety_level_var.get()]
+            df_to_chart = df_to_chart[df_to_chart["districtSafetyLevel"] == self.safety_level_var.get()]
+
+        selected_columns = [
+            'districtName',
+            'districtSafetyLevel',
+            'distanceOfSummonedAmbulance[km]',
+            'timeToReachFiring[min]'
+        ]
+
+        df_to_analise = pd.DataFrame(columns=['Operation'] + selected_columns)
+
+        sum_row_distance = df[['distanceOfSummonedAmbulance[km]', 'timeToReachFiring[min]']].sum().tolist()
+        df_to_analise.loc[0] = ['Sum of All distances and times'] + ['All'] + ['All'] + sum_row_distance
+
+        for i, safety_level in enumerate(df['districtSafetyLevel'].unique()):
+            filtered_df = df[df['districtSafetyLevel'] == safety_level]
+
+            sum_row_distance = filtered_df[['distanceOfSummonedAmbulance[km]', 'timeToReachFiring[min]']].sum().tolist()
+            df_to_analise.loc[i+1] = [f'Sum of {safety_level} distances and times', 'All', safety_level] + sum_row_distance
+
+        mean_row_distance = df[['distanceOfSummonedAmbulance[km]', 'timeToReachFiring[min]']].mean().tolist()
+        df_to_analise.loc[4] = ['Mean of All distances and times'] + ['All'] + ['All'] + mean_row_distance
+
+        for i, safety_level in enumerate(df['districtSafetyLevel'].unique()):
+            filtered_df = df[df['districtSafetyLevel'] == safety_level]
+
+            sum_row_distance = filtered_df[['distanceOfSummonedAmbulance[km]', 'timeToReachFiring[min]']].mean().tolist()
+            df_to_analise.loc[i+5] = [f'Mean of {safety_level} distances and times', 'All', safety_level] + sum_row_distance
+
+        max_row_index = df['distanceOfSummonedAmbulance[km]'].idxmax()
+        max_row = df.loc[max_row_index, selected_columns].tolist()
+        df_to_analise.loc[8] = ['Max of distanceOfSummonedAmbulance[m]'] + max_row
+
+        min_row_index = df['distanceOfSummonedAmbulance[km]'].idxmin()
+        min_row = df.loc[min_row_index, selected_columns].tolist()
+        df_to_analise.loc[9] = ['Min of distanceOfSummonedAmbulance[m]'] + min_row
+
+        max_row_index = df['timeToReachFiring[min]'].idxmax()
+        max_row = df.loc[max_row_index, selected_columns].tolist()
+        df_to_analise.loc[10] = ['Max of timeToReachFiring[min]'] + max_row
+
+        min_row_index = df['timeToReachFiring[min]'].idxmin()
+        min_row = df.loc[min_row_index, selected_columns].tolist()
+        df_to_analise.loc[11] = ['Min of timeToReachFiring[min]'] + min_row
 
         self.draw_chart(df)
+        if self.presentation_mode == 'chart':
+            self.draw_chart(df_to_chart)
+            self.analyse(df_to_analise)  
+        elif self.presentation_mode == 'table':
+            self.create_table(df_to_chart)
 
         # Utworzenie buttona do exportu danych
         button = ttk.Button(self.export_frame, text="Export data", command=lambda: export_to_csv(df, f"Firings Details - {self.city_var.get()} - {self.distinct_var.get()}"))
@@ -281,15 +331,15 @@ class AmbulanceDetailsVisualizer():
             ax.spines['right'].set_color('white')
 
             for district, data in df.groupby("districtName"):
-                plt.scatter(data["distanceOfSummonedAmbulance[m]"] / 1000, data["timeToReachFiring[s]"], label=district)
+                plt.scatter(data["distanceOfSummonedAmbulance[m]"] / 1000, data["timeToReachFiring[min]"], label=district)
             
             # Dodanie legendy
             plt.legend()
 
             # Dodanie etykiet oraz tytułu wykresu
-            plt.xlabel("Sumaryczne odległości od miejsca strzelaniny (km)")
-            plt.ylabel("Czasy dojazdu (min)")
-            plt.title("Sumaryczne odległości od miejsca strzelaniny a czasy dojazdu")
+            plt.xlabel("Summary distances from the firing (km)")
+            plt.ylabel("Time To Reach Firing (min)")
+            plt.title("Summary shooting distances vs. travel times")
 
             container_frame = ttk.Frame(self.frame_chart)
             container_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
@@ -359,12 +409,12 @@ class AmbulanceDetailsVisualizer():
                 sns.countplot(y=district_counts, data=df, color='skyblue', orient='h', legend=False)
 
             # Dodanie etykiet oraz tytułu wykresu
-            plt.xlabel("Dzielnice")
-            plt.ylabel("Liczba incydentów")
-            plt.title(f"Liczba incydentów w poszczególnych dzielnicach")
+            plt.ylabel("Districts")
+            plt.xlabel("Number of incidents")
+            plt.title("Number of incidents by district")
 
             # Ustawienie napisów na osi X pionowo
-            plt.xticks(rotation=90)
+            # plt.xticks(rotation=90)
 
             container_frame = ttk.Frame(self.frame_chart)
             container_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
@@ -396,70 +446,67 @@ class AmbulanceDetailsVisualizer():
             widget.destroy()
 
         # Utwórzenie drzewa do wyświetlania danych
-        tree = ttk.Treeview(self.frame_analise, columns=["level", "totaldistance", "solvingpatrols", "reachingpatrols", "percentage", "kmperpatrol"], show="headings")
+        tree = ttk.Treeview(self.frame_analise, columns=["Option", "districtName", "districtSafetyLevel", "distanceOfSummonedAmbulance[km]", "timeToReachFiring[min]"], show="headings")
 
         # Dodanie kolumny
-        tree.heading("level", text="Level")
-        tree.heading("totaldistance", text="Total")
-        tree.heading("solvingpatrols", text="Solving patrols")
-        tree.heading("reachingpatrols", text="Reaching patrols")
-        tree.heading("percentage", text="Percentage")
-        tree.heading("kmperpatrol", text="Km per patrol")
+        tree.heading("Option", text="Operation")
+        tree.heading("districtName", text="District Name")
+        tree.heading("districtSafetyLevel", text="District Safety Level")
+        tree.heading("distanceOfSummonedAmbulance[km]", text="Distance Of Summoned Ambulance [km]")
+        tree.heading("timeToReachFiring[min]", text="Time To Reach Firing [min]")
 
-        tree.column("#1", anchor="center")
-        tree.column("#2", anchor="center")
-        tree.column("#3", anchor="center")
-        tree.column("#4", anchor="center")
-        tree.column("#5", anchor="center")
-        tree.column("#6", anchor="center")
+        tree.column("#1", anchor="center", width=260)
+        tree.column("#2", anchor="center", width=150)
+        tree.column("#3", anchor="center", width=150)
+        tree.column("#4", anchor="center", width=230)
+        tree.column("#5", anchor="center", width=180)
 
         for index, row in data.iterrows():
-            tree.insert("", "end", values=(row['districtSafetyLevel'], f"{row['totalDistanceOfCalledPatrols']:.2f}km", row["solvingPatrols"],
-                                            row["reachingPatrols(including 'called')"],  f"{row['percentageOfTotalDistance']:.2f}%", f"{row['kilometersPerPatrol']:.2f}"))
+            tree.insert("", "end", values=(row['Operation'], row['districtName'], row["districtSafetyLevel"],
+                                            f"{row['distanceOfSummonedAmbulance[km]']:.3f}km",  f"{row['timeToReachFiring[min]']:.2f}min"))
 
         tree.pack(side="left", fill="both", expand=True)
 
         ###########################
         ########## WYKRES #########
         ###########################
-        # Tworzenie figury i osi
-        fig, ax_pie = plt.subplots(figsize=(5, 4), subplot_kw=dict(aspect="equal"))
+        # Rysowanie histogramu
+        fig, ax = plt.subplots(figsize=(5, 3))
+
+        # Ustawienie koloru tła
         fig.patch.set_facecolor('#313131')
         fig.patch.set_alpha(1.0)
+        ax.patch.set_facecolor('#313131')
+        ax.patch.set_alpha(0.2)
 
-        # Rysowanie wykresu kołowego
-        wedges, texts, autotexts = ax_pie.pie(data['totalDistanceOfCalledPatrols'], labels=data['districtSafetyLevel'].unique(), autopct='%1.1f%%', startangle=140)
+        # Zmiana koloru czcionek na biały
+        for text in ax.get_xticklabels() + ax.get_yticklabels():
+            text.set_color('white')
 
-        # Dodanie legendy
-        # legend = ax_pie.legend(wedges, data['districtSafetyLevel'].unique(), title="Legend:", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
-        legend = ax_pie.legend(wedges, data['districtSafetyLevel'].unique(), title="Legend:", loc="upper center", bbox_to_anchor=(0.5, -0.1))
-        legend.get_title().set_color('white')
-        legend.get_title().set_size(10)
-        for text_obj in legend.get_texts():
-            text_obj.set_color('white')
-            text_obj.set_size(9)
+        # Zmiana koloru etykiet osi
+        ax.xaxis.label.set_color('white')
+        ax.yaxis.label.set_color('white')
 
-        # Ukrycie etykiet
-        for text in texts:
-            text.set_visible(False)
+        # Zmiana koloru tytułu
+        ax.title.set_color('white')
 
-        # Zmiana koloru tła legendy
-        legend.set_frame_on(True)
-        legend.get_frame().set_facecolor('#595959')
-        legend.get_frame().set_alpha(1.0)
+        # Zmiana koloru podziałek
+        ax.tick_params(axis='x', colors='white')
+        ax.tick_params(axis='y', colors='white')
 
-        # Dodanie tytułu
-        ax_pie.set_title('Percentage of kilometers')
-        ax_pie.title.set_color('#217346')
-        ax_pie.title.set_size(9)
+        # Zmiana koloru linii
+        ax.spines['bottom'].set_color('white')
+        ax.spines['top'].set_color('white')
+        ax.spines['left'].set_color('white')
+        ax.spines['right'].set_color('white')
+    
+        # Ustawienie tytułu i napisów przy wykresie
+        ax.bar(data['districtSafetyLevel'].unique()[:4], data['distanceOfSummonedAmbulance[km]'].head(4))
+        ax.set_xlabel('Safety Level')
+        ax.set_ylabel("Distance [km]")
+        ax.set_title("Distance Of Summoned Ambulance in Safety Levels")
 
-        # Zmiana koloru tekstu na biały
-        for text_obj in ax_pie.texts + autotexts:
-            text_obj.set_color('white')
-
-        plt.setp(autotexts, weight="bold", size=8)
-
-        fig.subplots_adjust(left=0.0, right=1.0, bottom=0.3, top=0.90)
+        fig.subplots_adjust(left=0.15, right=0.95, bottom=0.25, top=0.85)
 
         # Osadzenie wykresu w interfejsie tkinter
         canvas = FigureCanvasTkAgg(fig, master=self.frame_analise)
@@ -468,7 +515,6 @@ class AmbulanceDetailsVisualizer():
         # Zamyknięcie wykresu po użyciu
         plt.close(fig)
 
-        # Umieszczenie canvas w grid w frame
         canvas.get_tk_widget().pack(side=tk.LEFT, padx=10, pady=10)
 
 
