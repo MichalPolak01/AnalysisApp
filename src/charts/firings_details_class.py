@@ -7,16 +7,23 @@ from src.dataOperations.export_chart import export_plot_to_image
 import pandas as pd
 import seaborn as sns
 from src.dataOperations.export_data import export_to_csv
+from src.dataOperations.load_data import load_data
 
 
 class FiringDetailsVisualizer():
-    def __init__(self, frame1, frame2, selected_cities, data):
+    def __init__(self, frame1, frame2, selected_cities):
         super().__init__()
 
         self.frame1 = frame1
         self.frame2 = frame2
-        self.selected_cities = selected_cities
-        self.data = data
+        # self.selected_cities = selected_cities
+        # self.data = data
+
+        chart_topic = "Firings Details"
+
+        self.data = load_data(selected_cities, chart_topic)
+
+        self.selected_cities = list(selected_cities)
 
         ###########################
         ######### ZMIENNE #########
@@ -392,7 +399,7 @@ class FiringDetailsVisualizer():
                 else:
                     title = ""
 
-            plt.title("Patrols Value Over Time" + title)
+            plt.title("Patrols Value Over Time " + title)
         elif self.mode_dropdown_var.get() == "SafetyLevel":
             safety_level_data = {}
             for safety_level in self.safety_levels:

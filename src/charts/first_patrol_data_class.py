@@ -4,18 +4,25 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from src.dataOperations.export_chart import export_plot_to_image
+from src.dataOperations.load_data import load_data
 
 from src.dataOperations.export_data import export_to_csv
 
 
 class PatrolDataVisualizer():
-    def __init__(self, frame1, frame2, selected_cities, data):
+    def __init__(self, frame1, frame2, selected_cities):
         super().__init__()
 
         self.frame1 = frame1
         self.frame2 = frame2
-        self.selected_cities = selected_cities
-        self.data = data
+        # self.selected_cities_ = selected_cities
+        # self.data = data
+
+        chart_topic = "First Patrol Data"
+
+        self.data = load_data(selected_cities, chart_topic)
+
+        self.selected_cities = list(selected_cities)
 
         ###########################
         ######### ZMIENNE #########
@@ -191,7 +198,7 @@ class PatrolDataVisualizer():
         for state, group in grouped_data:
             plt.plot(group['simulationTime[s]'] / 3600, group['timeInState[s]'] / 60, label=state, linestyle='-')
 
-        # Ustawienie przyrostówn na osiach
+        # Ustawienie przyrostów na osiach
         ax = plt.gca()
         ax.xaxis.set_major_locator(MultipleLocator(1))
         ax.yaxis.set_major_locator(MultipleLocator(5))

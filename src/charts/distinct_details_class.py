@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from src.dataOperations.export_chart import export_plot_to_image
 from src.dataOperations.export_data import export_to_csv
+from src.dataOperations.load_data import load_data
 
 types_of_patrol = {
     "Names": [
@@ -35,13 +36,19 @@ types_of_patrol = {
 categories = ['Safe', 'Rather Safe', 'Not Safe']
 
 class DistinctDetailsVisualizer:
-    def __init__(self, frame1, frame2, selected_cities, data):
+    def __init__(self, frame1, frame2, selected_cities):
         super().__init__()
 
         self.frame1 = frame1
         self.frame2 = frame2
-        self.selected_cities = selected_cities
-        self.data = data
+        # self.selected_cities = selected_cities
+        # self.data = data
+
+        chart_topic = "Distinct Details"
+
+        self.data = load_data(selected_cities, chart_topic)
+
+        self.selected_cities = list(selected_cities)
 
         ###########################
         ######### ZMIENNE #########

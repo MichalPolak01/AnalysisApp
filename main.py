@@ -7,16 +7,16 @@ from src.charts.distinct_details_class import DistinctDetailsVisualizer
 from src.charts.firings_details_class import FiringDetailsVisualizer
 from src.charts.first_patrol_data_class import PatrolDataVisualizer
 from src.charts.ambulance_distance_and_time_class import AmbulanceDetailsVisualizer
-from src.dataOperations.load_data import load_data
+from src.charts.comparison_of_ambulances_with_swat_class import AmbulancesAndSwatVisualizer
 
 
-# Tematy wykresów
 chart_titles = [
-    "First Patrol Data",
-    "Distinct Details",
+    "Basic Information",
+    "Incidents In Districts",
     "Changing State Details",
     "Firings Details",
-    "Ambulance Distance And Time To Reach Firing",
+    "Ambulance Details On firings",
+    "Comparison Of Ambulances With Swat"
 ]
 
 # Miasta
@@ -128,20 +128,19 @@ def load_preset_options(chart_topic):
         frame2 = ttk.Frame(root, height=root.winfo_height(), style="Green.TFrame")
         frame2.grid(row=0, column=1, sticky=tk.NSEW)
 
-        data = load_data(selected_cities, chart_topic)
-        selected_cities_list = list(selected_cities)
-
         match chart_topic:
-            case "First Patrol Data":
-                PatrolDataVisualizer(frame1, frame2, selected_cities_list, data)
-            case "Distinct Details":
-                DistinctDetailsVisualizer(frame1, frame2, selected_cities_list, data)
-            case  "Changing State Details":
-                ChangingStateDetailsVisualizer(frame1, frame2, selected_cities_list, data)
+            case "Basic Information":
+                PatrolDataVisualizer(frame1, frame2, selected_cities)
+            case "Incidents In Districts":
+                DistinctDetailsVisualizer(frame1, frame2, selected_cities)
+            case "Changing State Details":
+                ChangingStateDetailsVisualizer(frame1, frame2, selected_cities)
             case "Firings Details":
-                FiringDetailsVisualizer(frame1, frame2, selected_cities_list, data)
-            case "Ambulance Distance And Time To Reach Firing":
-                AmbulanceDetailsVisualizer(frame1, frame2, selected_cities_list, data)
+                FiringDetailsVisualizer(frame1, frame2, selected_cities)
+            case "Ambulance Details On firings":
+                AmbulanceDetailsVisualizer(frame1, frame2, selected_cities)
+            case "Comparison Of Ambulances With Swat":
+                AmbulancesAndSwatVisualizer(frame1, frame2, selected_cities)
 
 
 ###########################
