@@ -3,9 +3,9 @@ from tkinter import ttk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import seaborn as sns
-from export_chart import export_plot_to_image
+from src.dataOperations.export_chart import export_plot_to_image
 
-from export_data import export_to_csv
+from src.dataOperations.export_data import export_to_csv
 
 
 class ChangingStateDetailsVisualizer():

@@ -1,15 +1,13 @@
+import os
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-from changing_state_details import frame_layout_for_state_details, load_options_for_state_details
-from changing_state_details_class import ChangingStateDetailsVisualizer
-from distinct_details import frame_layout_for_distinct_details, load_options_for_distinct_details
-from distinct_details_class import DistinctDetailsVisualizer
-from firings_details_class import FiringDetailsVisualizer
-from first_patrol_data_class import PatrolDataVisualizer
-from ambulance_distance_and_time_class import AmbulanceDetailsVisualizer
-from load_data import load_data
-from first_patrol_data import frame_layout_for_first_patrol_data, load_options_for_first_patrol_data
+from src.charts.changing_state_details_class import ChangingStateDetailsVisualizer
+from src.charts.distinct_details_class import DistinctDetailsVisualizer
+from src.charts.firings_details_class import FiringDetailsVisualizer
+from src.charts.first_patrol_data_class import PatrolDataVisualizer
+from src.charts.ambulance_distance_and_time_class import AmbulanceDetailsVisualizer
+from src.dataOperations.load_data import load_data
 
 
 # Tematy wykresów
@@ -42,10 +40,14 @@ root = tk.Tk()
 # root.geometry("1350x760") # 16:9
 root.state('zoomed') # Dopasuj do ekranu
 
+# Ustalenie pełnej ścieżki do plików TCL
+forest_light_path = os.path.join("src", "themes", "forest-light.tcl")
+forest_dark_path = os.path.join("src", "themes", "forest-dark.tcl")
+
 # Dodanie stylu
 style = ttk.Style(root)
-root.tk.call("source", "forest-light.tcl")
-root.tk.call("source", "forest-dark.tcl")
+root.tk.call("source", forest_light_path)
+root.tk.call("source", forest_dark_path)
 style.theme_use("forest-dark")
 
 # Ustawienie szerokości i wysokości komponentów

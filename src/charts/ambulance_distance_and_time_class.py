@@ -2,10 +2,10 @@ import tkinter as tk
 from tkinter import ttk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-from export_chart import export_plot_to_image
+from src.dataOperations.export_chart import export_plot_to_image
 import pandas as pd
 import seaborn as sns
-from export_data import export_to_csv
+from src.dataOperations.export_data import export_to_csv
 
 
 class AmbulanceDetailsVisualizer():
@@ -24,7 +24,6 @@ class AmbulanceDetailsVisualizer():
         self.mode_dropdown_var = tk.StringVar()
         self.distinct_var = tk.StringVar()
         self.firing_id_var = tk.StringVar()
-        self.type_of_patrol_var = tk.StringVar()
         self.safety_level_var = tk.StringVar()
         self.displaySafetyLevel = tk.BooleanVar()
 
@@ -91,11 +90,11 @@ class AmbulanceDetailsVisualizer():
         set_city_frame = ttk.LabelFrame(self.options_frame, text="Set city")
         set_city_frame.grid(row=0, column=0, padx=20, pady=10, sticky="nsew")
 
-        mode_radio = ttk.Radiobutton(set_city_frame, text="All", value="All", variable=self.city_var, command=self.prepare_data)
+        mode_radio = ttk.Radiobutton(set_city_frame, text="All", value="All", variable=self.city_var, command=self.set_firing_id_or_district)
         mode_radio.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
 
         for i, city in enumerate(self.selected_cities):
-            mode_radio = ttk.Radiobutton(set_city_frame, text=city, value=city, variable=self.city_var, command=self.prepare_data)
+            mode_radio = ttk.Radiobutton(set_city_frame, text=city, value=city, variable=self.city_var, command=self.set_firing_id_or_district)
             mode_radio.grid(row=i+1, column=0, padx=5, pady=5, sticky="nsew")
         self.city_var.set("All")
 
