@@ -37,7 +37,6 @@ class AmbulancesAndSwatVisualizer():
         self.presentation_mode = 'chart'
 
         self.modes = [
-            # 'Average Distance And Time To Reach Firing',
             'Average Distance To Reach Firing',
             'Average Time To Reach Firing',
             'Used Per Hour'

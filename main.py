@@ -8,6 +8,7 @@ from src.charts.firings_details_class import FiringDetailsVisualizer
 from src.charts.first_patrol_data_class import PatrolDataVisualizer
 from src.charts.ambulance_distance_and_time_class import AmbulanceDetailsVisualizer
 from src.charts.comparison_of_ambulances_with_swat_class import AmbulancesAndSwatVisualizer
+from src.charts.comparison_of_firings_and_interventions_class import InterventionAndFiringsVisualizer
 
 
 chart_titles = [
@@ -16,7 +17,8 @@ chart_titles = [
     "Changing State Details",
     "Firings Details",
     "Ambulance Details On firings",
-    "Comparison Of Ambulances With Swat"
+    "Comparison Of Ambulances With Swat",
+    "Interventions And Firings Details"
 ]
 
 # Miasta
@@ -141,7 +143,8 @@ def load_preset_options(chart_topic):
                 AmbulanceDetailsVisualizer(frame1, frame2, selected_cities)
             case "Comparison Of Ambulances With Swat":
                 AmbulancesAndSwatVisualizer(frame1, frame2, selected_cities)
-
+            case "Interventions And Firings Details":
+                InterventionAndFiringsVisualizer(frame1, frame2, selected_cities)
 
 ###########################
 ########## STYLE ##########

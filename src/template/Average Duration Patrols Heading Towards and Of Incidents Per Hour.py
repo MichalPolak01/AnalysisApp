@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 
 # Ustawienia
 date = "firing"              # all, firing, intervention
-mode = "amount"              # amount, duration, averageDuration, averageTransfer
+mode = "averageTransfer"              # amount, duration, averageDuration, averageTransfer
 
 # Wczytaj dane z pliku CSV
-file_name_1 = r"C:\Users\dwini\Desktop\AnalysisApp\results\Berlin\12-11-2023_20-00-38--Average Duration Of Incidents Per Hour.csv"
-file_name_2 = r"C:\Users\dwini\Desktop\AnalysisApp\results\Berlin\12-11-2023_20-00-38--Average Duration Patrols Heading Towards Incidents Per Hour.csv"
+file_name_1 = r"E:\Projekty\Inzynieria_oprogramowania\AnalysisApp\results\Berlin\12-11-2023_20-00-38--Average Duration Of Incidents Per Hour.csv"
+file_name_2 = r"E:\Projekty\Inzynieria_oprogramowania\AnalysisApp\results\Berlin\12-11-2023_20-00-38--Average Duration Patrols Heading Towards Incidents Per Hour.csv"
 
 # Wczytaj dane do obiektu DataFrame
 data = pd.read_csv(file_name_1 if mode != "averageTransfer" else file_name_2)
@@ -35,25 +35,28 @@ if date == "all":
     if mode == "averageTransfer":
         y_label_intervention = "averageTransferToInterventionDuration[s]"
         y_label_firing = "averageTransferToFiringDuration[s]"
-else:
-    if date == "firing":
-        if mode == "amount":
-            y_label_firing = "amountOfFirings"
-        if mode == "duration":
-            y_label_firing = "firingsDuration[min]"
-        if mode == "averageDuration":
-            y_label_firing = "averageFiringDuration[min]"
-        if mode == "averageTransfer":
-            y_label_firing = "averageTransferToFiringDuration[s]"
-    elif date == "intervention":
-        if mode == "amount":
-            y_label_intervention = "amountOfInterventions"
-        if mode == "duration":
-            y_label_intervention = "interventionsDuration[min]"
-        if mode == "averageDuration":
-            y_label_intervention = "averageInterventionDuration[min]"
-        if mode == "averageTransfer":
-            y_label_intervention = "averageTransferToInterventionDuration[s]"
+elif date == "firing":
+    if mode == "amount":
+        y_label_firing = "amountOfFirings"
+    if mode == "duration":
+        y_label_firing = "firingsDuration[min]"
+    if mode == "averageDuration":
+        y_label_firing = "averageFiringDuration[min]"
+    if mode == "averageTransfer":
+        y_label_firing = "averageTransferToFiringDuration[s]"
+elif date == "intervention":
+    if mode == "amount":
+        y_label_intervention = "amountOfInterventions"
+        y_label_firing = "amountOfInterventions"
+    if mode == "duration":
+        y_label_intervention = "interventionsDuration[min]"
+        y_label_firing = "interventionsDuration[min]"
+    if mode == "averageDuration":
+        y_label_intervention = "averageInterventionDuration[min]"
+        y_label_firing = "averageInterventionDuration[min]"
+    if mode == "averageTransfer":
+        y_label_intervention = "averageTransferToInterventionDuration[s]"
+        y_label_firing = "averageTransferToInterventionDuration[s]"
 
 x_label = "Per Hour[Lp]"
 
