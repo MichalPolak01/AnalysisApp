@@ -24,10 +24,13 @@ chart_titles = [
 # Miasta
 cities = [
     "",
-    "Tarnow",
     "Berlin",
+    "Buenos Aires",
+    "Chicago",
     "Krakow",
-    "Warszawa"
+    "Tarnow",
+    "Warszawa",
+    "Wieden"
 ]
 
 # Alert
