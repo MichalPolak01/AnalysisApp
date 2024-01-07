@@ -398,7 +398,7 @@ class RedundancyVisualizer():
         canvas.draw()
 
         # Utworzenie buttona do exportu wykresu
-        button = ttk.Button(self.export_frame, text="Export chart", command=lambda: export_plot_to_image(fig, f"Firings Details - {self.city_var.get()} - {self.distinct_var.get()}"))
+        button = ttk.Button(self.export_frame, text="Export chart", command=lambda: export_plot_to_image(fig, f"Redundancy - {self.city_var.get()} - {self.distinct_var.get()}"))
         button.grid(row=1, column=0, padx=15, pady=5, sticky="nsew")
 
         # Zamyknięcie wykresu po użyciu

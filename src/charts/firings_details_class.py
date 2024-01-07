@@ -267,8 +267,7 @@ class FiringDetailsVisualizer():
             grouped_data = df[selected_columns].groupby("districtSafetyLevel").sum()
 
             # Dodanie kolumny z udziałem procentowym totalDistanceOfCalledPatrols
-            grouped_data["percentageOfTotalDistance"] = grouped_data["totalDistanceOfCalledPatrols"] / grouped_data[
-                "totalDistanceOfCalledPatrols"].sum() * 100
+            grouped_data["percentageOfTotalDistance"] = grouped_data["totalDistanceOfCalledPatrols"] / grouped_data["totalDistanceOfCalledPatrols"].sum() * 100
 
             # Dodanie kolumny z ilością kilometrów na patrol
             grouped_data["kilometersPerPatrol"] = grouped_data["totalDistanceOfCalledPatrols"] / (
@@ -528,7 +527,6 @@ class FiringDetailsVisualizer():
         wedges, texts, autotexts = ax_pie.pie(data['totalDistanceOfCalledPatrols'], labels=data['districtSafetyLevel'].unique(), autopct='%1.1f%%', startangle=140)
 
         # Dodanie legendy
-        # legend = ax_pie.legend(wedges, data['districtSafetyLevel'].unique(), title="Legend:", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
         legend = ax_pie.legend(wedges, data['districtSafetyLevel'].unique(), title="Legend:", loc="upper center", bbox_to_anchor=(0.5, -0.1))
         legend.get_title().set_color('white')
         legend.get_title().set_size(10)

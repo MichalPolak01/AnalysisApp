@@ -101,7 +101,7 @@ class PatrolDistanceVisualizer():
         for i, mode in enumerate(self.modes):
             mode_radio = ttk.Radiobutton(set_mode_frame, text=mode, value=mode, variable=self.mode_dropdown_var, command=self.prepare_data)
             mode_radio.grid(row=i + 1, column=0, padx=5, pady=5, sticky="nsew")
-        self.mode_dropdown_var.set("Mean")
+        self.mode_dropdown_var.set("Sum")
 
         self.prepare_data()
 
@@ -214,7 +214,7 @@ class PatrolDistanceVisualizer():
         for index, value in enumerate(filtered_df.values):
             plt.text(value, index, f'{value:.2f}', ha='left', va='center', color='white')
 
-        plt.title(f"{self.mode_dropdown_var.get()} Patrols Distance in States")
+        plt.title(f"{self.mode_dropdown_var.get()} Patrols Distance in States for {self.city_var.get()}")
         plt.xlabel(f"{self.mode_dropdown_var.get()} Value")
         plt.ylabel("State Name")
         
