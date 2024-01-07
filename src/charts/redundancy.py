@@ -10,14 +10,12 @@ from src.dataOperations.export_data import export_to_csv
 from src.dataOperations.load_data import load_data
 
 
-class FiringDetailsVisualizer():
+class RedundancyVisualizer():
     def __init__(self, frame1, frame2, selected_cities):
         super().__init__()
 
         self.frame1 = frame1
         self.frame2 = frame2
-        # self.selected_cities = selected_cities
-        # self.data = data
 
         chart_topic = "Firings Details"
 
@@ -38,9 +36,9 @@ class FiringDetailsVisualizer():
         self.presentation_mode = 'chart'
 
         self.modes = [
-            "Values",
+            "Amount",
             "Mean",
-            "SafetyLevel"
+            # "SafetyLevel"
         ]
 
         self.types_patrol = [
@@ -59,6 +57,7 @@ class FiringDetailsVisualizer():
             
         self.columns_to_plot = [
             "generallyRequiredPatrols",
+            "arrivedPatrols",
             "solvingPatrols",
             "reachingPatrols(including 'called')",
             "calledPatrols"
@@ -121,7 +120,6 @@ class FiringDetailsVisualizer():
         mode_dropdown.current(0)
         mode_dropdown.bind("<<ComboboxSelected>>", self.on_combobox_selected)
         mode_dropdown.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
-        self.mode_dropdown_extends()
 
         self.set_firing_id_or_district()
 
@@ -140,17 +138,8 @@ class FiringDetailsVisualizer():
             if info['row'] == 2:
                 child.destroy()
 
-        if self.mode_dropdown_var.get() == "Values":
-            self.set_firing_id_or_district()
-            self.mode_dropdown_extends()
-        elif self.mode_dropdown_var.get() == "SafetyLevel":
-            self.firing_id_var.set('All')
-            self.distinct_var.set('All')
-            
-            self.prepare_data()
-        else:
-            self.set_firing_id_or_district()
-            self.prepare_data()
+        self.set_firing_id_or_district()
+        self.prepare_data()
 
 
     # Wybór pomiędzy firing a distinct
@@ -162,17 +151,6 @@ class FiringDetailsVisualizer():
         mode_switch.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
         self.toggle_mode(mode_switch, set_frame)
 
-
-    # Oknow wyboru typu patrolu
-    def mode_dropdown_extends(self):
-        types_patrol_frame = ttk.LabelFrame(self.options_frame, text="Set patrol type")
-        types_patrol_frame.grid(row=2, column=0, padx=20, pady=10, sticky="nsew")
-
-        types_patrol_dropdown = ttk.Combobox(types_patrol_frame, values=self.types_patrol, width=28, textvariable=self.type_of_patrol_var)
-        types_patrol_dropdown.current(0)
-        types_patrol_dropdown.bind("<<ComboboxSelected>>", self.prepare_data)
-        types_patrol_dropdown.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
-        
 
     # Obsługa Switch'a
     def toggle_mode(self, mode_switch, frame):
@@ -233,6 +211,9 @@ class FiringDetailsVisualizer():
     # Przygotowanie danych
     def prepare_data(self, event=None):
         filtered_df = self.data.copy()
+        filtered_df["arrivedPatrols"] = filtered_df["solvingPatrols"] + filtered_df["reachingPatrols(including 'called')"]
+
+
         if self.city_var.get() != '' and self.firing_id_var.get() != '' and self.distinct_var.get() != '': 
             if self.city_var.get() == 'All':
                 if self.firing_id_var.get() != 'All':
@@ -251,74 +232,42 @@ class FiringDetailsVisualizer():
         filtered_df["simulationTime[h]"] = filtered_df["simulationTime[s]"] / 3600
         filtered_df["totalDistanceOfCalledPatrols"] = filtered_df["totalDistanceOfCalledPatrols"].replace({',': '.'}, regex=True).astype(float) / 1000
 
-        # Przygotowanie danych do analizy
-        if self.mode_dropdown_var.get() == "SafetyLevel":
-            df = filtered_df.copy()
+        df = filtered_df.copy()
 
-            # Wybór interesujących kolumn
-            selected_columns = [
-                "districtSafetyLevel",
-                "totalDistanceOfCalledPatrols",
-                "solvingPatrols",
-                "reachingPatrols(including 'called')"
-            ]
+        # Wybór interesujących kolumn
+        selected_columns = [
+            "generallyRequiredPatrols",
+            "arrivedPatrols",
+            "solvingPatrols",
+            "reachingPatrols(including 'called')",
+            "calledPatrols"
+        ]
 
-            # Zgrupowanie danych według districtSafetyLevel i obliczenie sum
-            grouped_data = df[selected_columns].groupby("districtSafetyLevel").sum()
+        # Tworzenie DataFrame
+        grouped_data = pd.DataFrame(columns=['Operation'] + selected_columns)
 
-            # Dodanie kolumny z udziałem procentowym totalDistanceOfCalledPatrols
-            grouped_data["percentageOfTotalDistance"] = grouped_data["totalDistanceOfCalledPatrols"] / grouped_data[
-                "totalDistanceOfCalledPatrols"].sum() * 100
+        # Dodanie pierwszego wiersza z sumą
+        grouped_data.loc[0] = ['sum'] + df[selected_columns].sum().tolist()
+        grouped_data.loc[1] = ['mean'] + df[selected_columns].mean().tolist()
 
-            # Dodanie kolumny z ilością kilometrów na patrol
-            grouped_data["kilometersPerPatrol"] = grouped_data["totalDistanceOfCalledPatrols"] / (
-                    grouped_data["solvingPatrols"] + grouped_data["reachingPatrols(including 'called')"]
-            )
+        # Dodanie wiersza z danymi, gdy generallyRequiredPatrols jest największe
+        max_row_index = df['generallyRequiredPatrols'].idxmax()
+        max_row = df.loc[max_row_index, selected_columns].tolist()
+        grouped_data.loc[2] = ['max of required'] + max_row
 
-            grouped_data = grouped_data.reset_index()  # Reset index
-      
-            if self.presentation_mode == 'chart':
-                self.draw_chart(filtered_df)
-                self.analyse(grouped_data)  
-            elif self.presentation_mode == 'table':
-                self.create_table(filtered_df)
+        # Dodanie wiersza z danymi, gdy generallyRequiredPatrols jest najmniejsze
+        min_row_index = df['generallyRequiredPatrols'].idxmin()
+        min_row = df.loc[min_row_index, selected_columns].tolist()
+        grouped_data.loc[3] = ['min of required'] + min_row
 
-        elif self.mode_dropdown_var.get() == "Values" or self.mode_dropdown_var.get() == "Mean":
-            df = filtered_df.copy()
+        # Dodanie nowej kolumny z wynikiem działania
+        grouped_data['Difference_patrols'] = grouped_data['generallyRequiredPatrols'] - (grouped_data['solvingPatrols'] + grouped_data['reachingPatrols(including \'called\')'])
 
-            # Wybór interesujących kolumn
-            selected_columns = [
-                "generallyRequiredPatrols",
-                "solvingPatrols",
-                "reachingPatrols(including 'called')",
-                "calledPatrols"
-            ]
-
-            # Tworzenie DataFrame
-            grouped_data = pd.DataFrame(columns=['Operation'] + selected_columns)
-
-            # Dodanie pierwszego wiersza z sumą
-            grouped_data.loc[0] = ['sum'] + df[selected_columns].sum().tolist()
-            grouped_data.loc[1] = ['mean'] + df[selected_columns].mean().tolist()
-
-            # Dodanie wiersza z danymi, gdy generallyRequiredPatrols jest największe
-            max_row_index = df['generallyRequiredPatrols'].idxmax()
-            max_row = df.loc[max_row_index, selected_columns].tolist()
-            grouped_data.loc[2] = ['max of required'] + max_row
-
-            # Dodanie wiersza z danymi, gdy generallyRequiredPatrols jest najmniejsze
-            min_row_index = df['generallyRequiredPatrols'].idxmin()
-            min_row = df.loc[min_row_index, selected_columns].tolist()
-            grouped_data.loc[3] = ['min of required'] + min_row
-
-            # Dodanie nowej kolumny z wynikiem działania
-            grouped_data['Difference_patrols'] = grouped_data['generallyRequiredPatrols'] - (grouped_data['solvingPatrols'] + grouped_data['reachingPatrols(including \'called\')'])
-
-            if self.presentation_mode == 'chart':
-                self.draw_chart(filtered_df)
-                self.analyse_for_values(grouped_data, selected_columns)
-            elif self.presentation_mode == 'table':
-                self.create_table(filtered_df)
+        if self.presentation_mode == 'chart':
+            self.draw_chart(filtered_df)
+            self.analyse_for_values(grouped_data, selected_columns)
+        elif self.presentation_mode == 'table':
+            self.create_table(filtered_df)
 
         # Utworzenie buttona do exportu danych
         button = ttk.Button(self.export_frame, text="Export data", command=lambda: export_to_csv(filtered_df, f"Firings Details - {self.city_var.get()} - {self.distinct_var.get()}"))
@@ -361,69 +310,7 @@ class FiringDetailsVisualizer():
         ax.spines['right'].set_color('white')
 
         # Sporządzenie wykresów
-        if self.mode_dropdown_var.get() == "Values":
-            if self.type_of_patrol_var.get() == "All":
-                plt.plot(filtered_df["simulationTime[h]"], filtered_df["generallyRequiredPatrols"], label="Generally Required Patrols")
-                plt.plot(filtered_df["simulationTime[h]"], filtered_df["solvingPatrols"], label="Solving Patrols")
-                plt.plot(filtered_df["simulationTime[h]"], filtered_df["reachingPatrols(including 'called')"], label="Reaching Patrols")
-                plt.plot(filtered_df["simulationTime[h]"], filtered_df["calledPatrols"], label="Called Patrols")
-                plt.legend()
-                plt.xlabel("Simulation Time [h]")
-                plt.ylabel("Patrols Value")
-            else:
-                if self.type_of_patrol_var.get() == "Generally Required Patrols":
-                    plt.plot(filtered_df["simulationTime[h]"], filtered_df["generallyRequiredPatrols"],label="Generally Required Patrols")
-                if self.type_of_patrol_var.get() == "Solving Patrols":
-                    plt.plot(filtered_df["simulationTime[h]"], filtered_df["solvingPatrols"], label="Solving Patrols")
-                if self.type_of_patrol_var.get() == "Reaching Patrols":
-                    plt.plot(filtered_df["simulationTime[h]"], filtered_df["reachingPatrols(including 'called')"],label="Reaching Patrols")
-                if self.type_of_patrol_var.get() == "Called Patrols":
-                    plt.plot(filtered_df["simulationTime[h]"], filtered_df["calledPatrols"], label="Called Patrols")
-                plt.legend()
-                plt.xlabel("Simulation Time [h]")
-                plt.ylabel("Patrols Value")
-
-            if self.distinct_var.get() != 'All' and self.firing_id_var.get() == 'All':
-                if self.city_var.get() != 'All':
-                    title = (f'for {self.distinct_var.get()} in {self.city_var.get()}')
-                else:
-                    title = (f'for {self.distinct_var.get()}')
-            elif self.distinct_var.get() == 'All' and self.firing_id_var.get() != 'All':
-                if self.city_var.get() != 'All':
-                    title = (f'for patrol {self.firing_id_var.get()} in {self.city_var.get()}')
-                else:
-                    title = (f'for patrol {self.firing_id_var.get()}')
-            else:
-                if self.city_var.get() != 'All':
-                    title = (f'for {self.city_var.get()}')
-                else:
-                    title = ""
-
-            plt.title("Patrols Value Over Time " + title)
-        elif self.mode_dropdown_var.get() == "SafetyLevel":
-            safety_level_data = {}
-            for safety_level in self.safety_levels:
-                safety_level_data[safety_level] = filtered_df[filtered_df["districtSafetyLevel"] == safety_level]
-
-            total_distance_sum = {safety_level: data["totalDistanceOfCalledPatrols"].sum() for safety_level, data in
-                                safety_level_data.items()}
-
-            plt.bar(total_distance_sum.keys(), total_distance_sum.values())
-            plt.xlabel("Safety Level")
-            plt.ylabel("Total Distance of Called Patrols [km]")
-
-            if self.distinct_var.get() != 'All' and self.firing_id_var.get() == 'All':
-                title = (f'for {self.distinct_var.get()} in {self.city_var.get()}')
-            elif self.distinct_var.get() == 'All' and self.firing_id_var.get() != 'All':
-                title = (f'for patrol {self.firing_id_var.get()} in {self.city_var.get()}')
-            else:
-                if self.city_var.get() != 'All':
-                    title = (f'for {self.city_var.get()}')
-                else:
-                    title = ""
-            
-            plt.title("Total Distance of Called Patrols by Safety Level " + title)
-        elif self.mode_dropdown_var.get() == "Mean":
+        if self.mode_dropdown_var.get() == "Mean":
             mean_data = filtered_df[self.columns_to_plot]
 
             if self.distinct_var.get() != "All":
@@ -462,6 +349,46 @@ class FiringDetailsVisualizer():
             plt.title(f"Mean Patrols Value {title}")
             plt.xlabel("Mean Value")
             plt.ylabel("Patrols Category")
+        elif self.mode_dropdown_var.get() == "Amount":
+            mean_data = filtered_df[self.columns_to_plot]
+
+            if self.distinct_var.get() != "All":
+                mean_data = mean_data[filtered_df["districtName"] == self.distinct_var.get()]
+            if self.firing_id_var.get() != "All":
+                mean_data = mean_data[filtered_df["firingID"] == self.firing_id_var.get()]
+
+            mean_data = mean_data.sum()
+
+            # Stworzenie wykresu za pomocą seaborn
+            ax = sns.barplot(x=mean_data.values, y=mean_data.index, hue=mean_data.index, palette='viridis')
+
+            plt.subplots_adjust(left=0.2, right=0.95)
+
+            # Dodanie etykiet do słupków
+            for index, value in enumerate(mean_data.values):
+                plt.text(value, index, f'{value:.2f}', ha='left', va='center', color='white')
+
+            # Ustawienia tytułu i osi
+            if self.distinct_var.get() != 'All' and self.firing_id_var.get() == 'All':
+                if self.city_var.get() != 'All':
+                    title = (f'for {self.distinct_var.get()} in {self.city_var.get()}')
+                else:
+                    title = (f'for {self.distinct_var.get()}')
+            elif self.distinct_var.get() == 'All' and self.firing_id_var.get() != 'All':
+                if self.city_var.get() != 'All':
+                    title = (f'for patrol {self.firing_id_var.get()} in {self.city_var.get()}')
+                else:
+                    title = (f'for patrol {self.firing_id_var.get()}')
+            else:
+                if self.city_var.get() != 'All':
+                    title = (f'for {self.city_var.get()}')
+                else:
+                    title = ""
+
+            plt.title(f"Amount Patrols Value {title}")
+            plt.xlabel("Amount Value")
+            plt.ylabel("Patrols Category")
+        
 
         container_frame = ttk.Frame(self.frame_chart)
         container_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
@@ -486,89 +413,6 @@ class FiringDetailsVisualizer():
         canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
 
-    # Analiza danych
-    def analyse(self, data):        
-        # Wyczyszczenie frame
-        for widget in self.frame_analise.winfo_children():
-            widget.destroy()
-
-        # Utwórzenie drzewa do wyświetlania danych
-        tree = ttk.Treeview(self.frame_analise, columns=["level", "totaldistance", "solvingpatrols", "reachingpatrols", "percentage", "kmperpatrol"], show="headings")
-
-        # Dodanie kolumny
-        tree.heading("level", text="Level")
-        tree.heading("totaldistance", text="Total")
-        tree.heading("solvingpatrols", text="Solving patrols")
-        tree.heading("reachingpatrols", text="Reaching patrols")
-        tree.heading("percentage", text="Percentage")
-        tree.heading("kmperpatrol", text="Km per patrol")
-
-        tree.column("#1", anchor="center")
-        tree.column("#2", anchor="center")
-        tree.column("#3", anchor="center")
-        tree.column("#4", anchor="center")
-        tree.column("#5", anchor="center")
-        tree.column("#6", anchor="center")
-
-        for index, row in data.iterrows():
-            tree.insert("", "end", values=(row['districtSafetyLevel'], f"{row['totalDistanceOfCalledPatrols']:.2f}km", row["solvingPatrols"],
-                                            row["reachingPatrols(including 'called')"],  f"{row['percentageOfTotalDistance']:.2f}%", f"{row['kilometersPerPatrol']:.2f}"))
-
-        tree.pack(side="left", fill="both", expand=True)
-
-        ###########################
-        ########## WYKRES #########
-        ###########################
-        # Tworzenie figury i osi
-        fig, ax_pie = plt.subplots(figsize=(5, 4), subplot_kw=dict(aspect="equal"))
-        fig.patch.set_facecolor('#313131')
-        fig.patch.set_alpha(1.0)
-
-        # Rysowanie wykresu kołowego
-        wedges, texts, autotexts = ax_pie.pie(data['totalDistanceOfCalledPatrols'], labels=data['districtSafetyLevel'].unique(), autopct='%1.1f%%', startangle=140)
-
-        # Dodanie legendy
-        # legend = ax_pie.legend(wedges, data['districtSafetyLevel'].unique(), title="Legend:", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
-        legend = ax_pie.legend(wedges, data['districtSafetyLevel'].unique(), title="Legend:", loc="upper center", bbox_to_anchor=(0.5, -0.1))
-        legend.get_title().set_color('white')
-        legend.get_title().set_size(10)
-        for text_obj in legend.get_texts():
-            text_obj.set_color('white')
-            text_obj.set_size(9)
-
-        # Ukrycie etykiet
-        for text in texts:
-            text.set_visible(False)
-
-        # Zmiana koloru tła legendy
-        legend.set_frame_on(True)
-        legend.get_frame().set_facecolor('#595959')
-        legend.get_frame().set_alpha(1.0)
-
-        # Dodanie tytułu
-        ax_pie.set_title('Percentage of kilometers')
-        ax_pie.title.set_color('#217346')
-        ax_pie.title.set_size(9)
-
-        # Zmiana koloru tekstu na biały
-        for text_obj in ax_pie.texts + autotexts:
-            text_obj.set_color('white')
-
-        plt.setp(autotexts, weight="bold", size=8)
-
-        fig.subplots_adjust(left=0.0, right=1.0, bottom=0.3, top=0.90)
-
-        # Osadzenie wykresu w interfejsie tkinter
-        canvas = FigureCanvasTkAgg(fig, master=self.frame_analise)
-        canvas.draw()
-
-        # Zamyknięcie wykresu po użyciu
-        plt.close(fig)
-
-        # Umieszczenie canvas w grid w frame
-        canvas.get_tk_widget().pack(side=tk.LEFT, padx=10, pady=10)
-
-
     # Analiza danych dla Values i Mean
     def analyse_for_values(self, data, columns):        
         # Wyczyszczenie frame
@@ -581,21 +425,24 @@ class FiringDetailsVisualizer():
         # Dodanie kolumny
         tree.heading("Operation", text="Operation")
         tree.heading("generallyRequiredPatrols", text="Required Patrols")
+        tree.heading("arrivedPatrols", text="Arrived Patrols")
         tree.heading("solvingPatrols", text="Solving patrols")
         tree.heading("reachingPatrols(including 'called')", text="Reaching patrols")
         tree.heading("calledPatrols", text="Called Patrols")
         tree.heading("Difference_patrols", text="Difference patrols")
 
-        tree.column("#1", anchor="center")
-        tree.column("#2", anchor="center")
-        tree.column("#3", anchor="center")
-        tree.column("#4", anchor="center")
-        tree.column("#5", anchor="center")
-        tree.column("#6", anchor="center")
+        tree.column("#1", anchor="center", width=160)
+        tree.column("#2", anchor="center", width=160)
+        tree.column("#3", anchor="center", width=160)
+        tree.column("#4", anchor="center", width=160)
+        tree.column("#5", anchor="center", width=160)
+        tree.column("#6", anchor="center", width=160)
+        tree.column("#6", anchor="center", width=160)
+        tree.column("#7", anchor="center", width=160)
 
         for index, row in data.iterrows():
-            tree.insert("", "end", values=(row['Operation'], f"{row['generallyRequiredPatrols']:.2f}", f"{row['solvingPatrols']:.2f}",
-                                            f"{row.iloc[3]:.2f}",  f"{row['calledPatrols']:.2f}", f"{row['Difference_patrols']:.2f}"))
+            tree.insert("", "end", values=(row['Operation'], f"{row['generallyRequiredPatrols']:.2f}", f"{row['arrivedPatrols']:.2f}", f"{row['solvingPatrols']:.2f}",
+                                            f"{row.iloc[4]:.2f}",  f"{row['calledPatrols']:.2f}", f"{row['Difference_patrols']:.2f}"))
 
         tree.pack(side="left", fill="both", expand=True)
 
@@ -632,7 +479,7 @@ class FiringDetailsVisualizer():
         ax.spines['left'].set_color('white')
         ax.spines['right'].set_color('white')
 
-        if self.mode_dropdown_var.get() == "Values":
+        if self.mode_dropdown_var.get() == "Amount":
             # Przygotowanie danych
             categories = ["Required", "Patrols", "Difference"]
             # values = data.drop('Operation', axis=1).iloc[1, :]
@@ -653,7 +500,7 @@ class FiringDetailsVisualizer():
             ax.bar(categories, values)
             ax.set_xlabel('Operation')
             ax.set_ylabel('Value')
-            ax.set_title('Amount Values of Operations')            
+            ax.set_title('Amount Values of Operations')          
 
         fig.subplots_adjust(left=0.25, right=0.95, bottom=0.25, top=0.85)
 

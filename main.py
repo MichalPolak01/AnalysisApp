@@ -2,6 +2,8 @@ import os
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+from src.charts.patrol_distance_state import PatrolDistanceVisualizer
+from src.charts.redundancy import RedundancyVisualizer
 from src.charts.changing_state_details_class import ChangingStateDetailsVisualizer
 from src.charts.distinct_details_class import DistinctDetailsVisualizer
 from src.charts.firings_details_class import FiringDetailsVisualizer
@@ -12,13 +14,15 @@ from src.charts.comparison_of_firings_and_interventions_class import Interventio
 
 
 chart_titles = [
-    "Basic Information",
-    "Incidents In Districts",
-    "Changing State Details",
-    "Firings Details",
+    "I.1. Basic Information",
+    "I.2. Incidents In Districts",
+    "I.3. Changing State Details",
+    "I.4. Patrols Distances",
+    "I.6. Firings Details",
+    "I.7. Interventions And Firings Details",
+    "I.8. Comparison Of Ambulances With Swat",
     "Ambulance Details On firings",
-    "Comparison Of Ambulances With Swat",
-    "Interventions And Firings Details"
+    "II.1. Redundancy"
 ]
 
 # Miasta
@@ -43,7 +47,8 @@ def show_alert(text):
 ###########################
 root = tk.Tk()
 # root.geometry("1350x760") # 16:9
-root.state('zoomed') # Dopasuj do ekranu
+root.geometry("1920x1080") # 16:9
+# root.state('zoomed') # Dopasuj do ekranu
 
 # Ustalenie pełnej ścieżki do plików TCL
 forest_light_path = os.path.join("src", "themes", "forest-light.tcl")
@@ -134,20 +139,25 @@ def load_preset_options(chart_topic):
         frame2.grid(row=0, column=1, sticky=tk.NSEW)
 
         match chart_topic:
-            case "Basic Information":
+            case "I.1. Basic Information":
                 PatrolDataVisualizer(frame1, frame2, selected_cities)
-            case "Incidents In Districts":
+            case "I.2. Incidents In Districts":
                 DistinctDetailsVisualizer(frame1, frame2, selected_cities)
-            case "Changing State Details":
+            case "I.3. Changing State Details":
                 ChangingStateDetailsVisualizer(frame1, frame2, selected_cities)
-            case "Firings Details":
+            case "I.4. Patrols Distances":
+                PatrolDistanceVisualizer(frame1, frame2, selected_cities)
+            case "I.6. Firings Details":
                 FiringDetailsVisualizer(frame1, frame2, selected_cities)
             case "Ambulance Details On firings":
                 AmbulanceDetailsVisualizer(frame1, frame2, selected_cities)
-            case "Comparison Of Ambulances With Swat":
+            case "I.8. Comparison Of Ambulances With Swat":
                 AmbulancesAndSwatVisualizer(frame1, frame2, selected_cities)
-            case "Interventions And Firings Details":
+            case "I.7. Interventions And Firings Details":
                 InterventionAndFiringsVisualizer(frame1, frame2, selected_cities)
+            case "II.1. Redundancy":
+                RedundancyVisualizer(frame1, frame2, selected_cities)
+            
 
 ###########################
 ########## STYLE ##########
