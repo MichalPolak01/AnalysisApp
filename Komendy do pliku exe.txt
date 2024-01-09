@@ -1,0 +1,4 @@
+pip install pyinstaller
+pyinstaller main.py --onefile
+pyinstaller --onefile --add-data "src;src" main.py
+pyinstaller --onefile --add-data "src;src" --specpath build main.py
