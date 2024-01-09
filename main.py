@@ -53,8 +53,9 @@ root.geometry("1920x1080") # 16:9
 # root.state('zoomed') # Dopasuj do ekranu
 
 # Ustalenie pełnej ścieżki do plików TCL
-forest_light_path = os.path.join("src", "themes", "forest-light.tcl")
-forest_dark_path = os.path.join("src", "themes", "forest-dark.tcl")
+current_dir = os.path.dirname(os.path.realpath(__file__))
+forest_light_path = os.path.join(current_dir, "src", "themes", "forest-light.tcl")
+forest_dark_path = os.path.join(current_dir, "src", "themes", "forest-dark.tcl")
 
 # Dodanie stylu
 style = ttk.Style(root)
