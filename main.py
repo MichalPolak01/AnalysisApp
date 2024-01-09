@@ -2,6 +2,7 @@ import os
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+from src.charts.context_sharing_class import ContextSharingVisualizer
 from src.charts.patrol_distance_state import PatrolDistanceVisualizer
 from src.charts.redundancy import RedundancyVisualizer
 from src.charts.changing_state_details_class import ChangingStateDetailsVisualizer
@@ -22,7 +23,8 @@ chart_titles = [
     "I.7. Interventions And Firings Details",
     "I.8. Comparison Of Ambulances With Swat",
     "Ambulance Details On firings",
-    "II.1. Redundancy"
+    "II.1. Redundancy",
+    "II.3. Context Sharing"
 ]
 
 # Miasta
@@ -157,6 +159,8 @@ def load_preset_options(chart_topic):
                 InterventionAndFiringsVisualizer(frame1, frame2, selected_cities)
             case "II.1. Redundancy":
                 RedundancyVisualizer(frame1, frame2, selected_cities)
+            case "II.3. Context Sharing":
+                ContextSharingVisualizer(frame1, frame2, selected_cities)
             
 
 ###########################
