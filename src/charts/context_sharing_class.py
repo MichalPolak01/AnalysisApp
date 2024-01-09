@@ -168,11 +168,11 @@ class ContextSharingVisualizer():
         button = ttk.Button(set_time_frame, text="Set time", width=16, command=self.prepare_data)
         button.grid(row=2, column=0, padx=5, pady=5, sticky="nsew")
 
-        display_frame = ttk.LabelFrame(self.options_frame, text="Display")
-        display_frame.grid(row=5, column=0, padx=20, pady=10, sticky="nsew")
+        # display_frame = ttk.LabelFrame(self.options_frame, text="Display")
+        # display_frame.grid(row=5, column=0, padx=20, pady=10, sticky="nsew")
 
-        mode_switch_presentation = ttk.Checkbutton(display_frame, text="Chart | Table", style="Switch", command=lambda: self.toggle_mode_presentation(mode_switch_presentation))
-        mode_switch_presentation.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
+        # mode_switch_presentation = ttk.Checkbutton(display_frame, text="Chart | Table", style="Switch", command=lambda: self.toggle_mode_presentation(mode_switch_presentation))
+        # mode_switch_presentation.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
 
         self.toggle_mode(mode_switch, set_safety_level_frame)
     

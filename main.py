@@ -49,8 +49,8 @@ def show_alert(text):
 ###########################
 root = tk.Tk()
 # root.geometry("1350x760") # 16:9
-root.geometry("1920x1080") # 16:9
-# root.state('zoomed') # Dopasuj do ekranu
+# root.geometry("1920x1080") # 16:9
+root.state('zoomed') # Dopasuj do ekranu
 
 # Ustalenie pełnej ścieżki do plików TCL
 current_dir = os.path.dirname(os.path.realpath(__file__))
